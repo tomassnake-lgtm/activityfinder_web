@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ActivityFinder – Utforsk aktiviteter nær deg</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body>
+    <header class="af-header">
+      <div class="af-header-inner">
+        <a href="#" class="af-logo">ActivityFinder</a>
+        <nav class="af-nav">
+          <a href="#">Forside</a>
+          <a href="#weekly">Ukens aktiviteter</a>
+          <a href="#activities">Alle aktiviteter</a>
+          <a href="#map">Kart</a>
+          <a href="#profile" id="af-profile-link">Profil</a>
+          <a href="#admin" id="af-admin-link" style="display:none;">Admin</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div id="af-page-home" class="af-page af-visible">
+        <section id="weekly" class="af-section af-weekly">
+          <div class="af-section-header">
+            <h2>Ukens aktiviteter</h2>
+            <p>Et håndplukket utvalg som oppdateres hver uke.</p>
+          </div>
+          <div class="af-weekly-carousel" id="af-weekly-carousel">
+            <p class="af-empty">Laster…</p>
+          </div>
+        </section>
+
+        <section id="filters" class="af-section af-filters af-filters-compact">
+          <!-- Søkefelt med filterikon -->
+          <div class="af-search-row">
+            <div class="af-search-box">
+              <svg class="af-search-icon" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <input type="text" id="af-search-input" placeholder="Søk aktiviteter..." class="af-search-input" />
+              <button type="button" id="af-filter-toggle" class="af-filter-icon-btn" title="Vis filtre">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6h18M7 12h10M10 18h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Hurtigfiltre (alltid synlige) -->
+          <div class="af-quick-filters" id="af-quick-filters">
+            <button type="button" class="af-quick-filter" data-filter="gratis">Gratis</button>
+            <button type="button" class="af-quick-filter" data-filter="familie">Familie</button>
+            <button type="button" class="af-quick-filter" data-filter="barn">Barn</button>
+            <button type="button" class="af-quick-filter" data-filter="utendors">Utendørs</button>
+            <button type="button" class="af-quick-filter" data-filter="sosial">Sosialt</button>
+          </div>
+          
+          <!-- Utvidede filtre (skjult som standard) -->
+          <div class="af-expanded-filters af-filter-hidden" id="af-expanded-filters">
+            <div class="af-filter-group">
+              <span class="af-filter-label">Tidspunkt</span>
+              <div class="af-filter-options">
+                <button type="button" class="af-quick-filter" data-filter="idag">I dag</button>
+                <button type="button" class="af-quick-filter" data-filter="denneuken">Denne uken</button>
+                <button type="button" class="af-quick-filter" data-filter="helg">Helg</button>
+                <button type="button" class="af-quick-filter" data-filter="kveld">Kveld</button>
+              </div>
+            </div>
+            <div class="af-filter-group">
+              <span class="af-filter-label">Aktivitetstype</span>
+              <div class="af-filter-options">
+                <button type="button" class="af-quick-filter" data-filter="innendors">Innendørs</button>
+                <button type="button" class="af-quick-filter" data-filter="sport">Sport</button>
+                <button type="button" class="af-quick-filter" data-filter="kultur">Kultur</button>
+                <button type="button" class="af-quick-filter" data-filter="natur">Natur</button>
+                <button type="button" class="af-quick-filter" data-filter="trening">Trening</button>
+              </div>
+            </div>
+            <div class="af-filter-group">
+              <span class="af-filter-label">Tema</span>
+              <div class="af-filter-chips" id="af-filter-chips"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="activities" class="af-section af-activities">
+          <div class="af-section-header">
+            <h2>Alle aktiviteter</h2>
+            <p>Ukens aktiviteter finnes også i listen under.</p>
+          </div>
+          <div class="af-activities-list" id="af-activities-list">
+            <p class="af-empty">Laster…</p>
+          </div>
+        </section>
+
+        <section id="map" class="af-section af-map">
+          <div class="af-section-header af-map-header">
+            <div>
+              <h2>Kart</h2>
+              <p>Se aktiviteter som pins på kartet og klikk for detaljer.</p>
+            </div>
+            <button type="button" class="af-button secondary af-map-expand-btn" id="af-map-expand-btn">
+              Forstørr kart
+            </button>
+          </div>
+          <div class="af-map-container">
+            <div id="af-map" class="af-map-view"></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="af-page-profile" class="af-page">
+        <section class="af-section af-profile-section">
+          <h2>Profil</h2>
+          <div id="af-profile-login" class="af-profile-login">
+            <p class="af-profile-login-intro">Logg inn for å se profilen din og administrere aktiviteter.</p>
+            <form id="af-login-form">
+              <label for="af-login-email">E-post</label>
+              <input type="email" id="af-login-email" required placeholder="din@epost.no" />
+              <label for="af-login-password">Passord</label>
+              <input type="password" id="af-login-password" required />
+              <button type="submit" class="af-button primary">Logg inn</button>
+            </form>
+            <p class="af-profile-login-divider">eller</p>
+            <button type="button" class="af-button af-google-btn" id="af-login-google">
+              <svg class="af-google-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Logg inn med Google
+            </button>
+          </div>
+          <div id="af-profile-content" class="af-profile-content" style="display:none;">
+            <p><strong>Navn:</strong> <span id="af-profile-name">—</span></p>
+            <p><strong>E-post:</strong> <span id="af-profile-email">—</span></p>
+            <button type="button" class="af-button secondary" id="af-logout-btn">Logg ut</button>
+          </div>
+        </section>
+      </div>
+
+      <div id="af-page-admin" class="af-page">
+        <section class="af-section af-admin-section">
+          <h2>Admin – Aktiviteter</h2>
+          <p>Her kan du opprette og redigere aktiviteter som vises på forsiden.</p>
+          <button type="button" class="af-button primary" id="af-admin-new" onclick="window.afAdminNew && window.afAdminNew();">Ny aktivitet</button>
+          <div class="af-admin-list" id="af-admin-list">
+            <p class="af-empty">Laster…</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="af-modal-overlay" class="af-modal-overlay">
+      <div class="af-modal af-modal-activity">
+        <button type="button" class="af-modal-close" id="af-modal-close" aria-label="Lukk">×</button>
+        <div id="af-modal-content" class="af-modal-activity-content"></div>
+      </div>
+    </div>
+
+    <div id="af-admin-form" class="af-modal-overlay af-admin-form-overlay">
+      <div class="af-modal af-admin-form">
+        <button type="button" class="af-modal-close af-admin-form-close" id="af-admin-form-close" aria-label="Lukk">×</button>
+        <h3 class="af-admin-form-title">Ny aktivitet</h3>
+        <input type="hidden" id="af-admin-id" />
+        <label for="af-admin-name">Navn *</label>
+        <input type="text" id="af-admin-name" required />
+        <label for="af-admin-short-description">Kort beskrivelse (vises på aktivitetskort og i «Alle aktiviteter»)</label>
+        <textarea id="af-admin-short-description" rows="2" placeholder="1–2 setninger som vises på kortet"></textarea>
+        <label for="af-admin-description">Lang beskrivelse (vises når man åpner aktiviteten)</label>
+        <textarea id="af-admin-description" rows="5" placeholder="Full beskrivelse som vises i aktivitetsdetaljer"></textarea>
+        <label for="af-admin-category">Tema / kategori</label>
+        <input type="text" id="af-admin-category" list="af-categories" placeholder="F.eks. snø, vann, skog" />
+        <datalist id="af-categories">
+          <option value="snø"><option value="vann"><option value="skog"><option value="ball"><option value="sosial"><option value="familie"><option value="foreldrepermisjon">
+        </datalist>
+        
+        <label class="af-admin-type-label">Aktivitetstype (velg alle som passer)</label>
+        <div class="af-admin-tags" id="af-admin-tags">
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="gratis" /><span>Gratis</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="familie" /><span>Familie</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="barn" /><span>Barn</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="utendors" /><span>Utendørs</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="innendors" /><span>Innendørs</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="sosial" /><span>Sosialt</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="sport" /><span>Sport</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="kultur" /><span>Kultur</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="natur" /><span>Natur</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="trening" /><span>Trening</span></label>
+          <label class="af-tag-checkbox"><input type="checkbox" name="af-tags" value="foreldrepermisjon" /><span>Foreldrepermisjon</span></label>
+        </div>
+        <label class="af-admin-type-label">Type aktivitet</label>
+        <div class="af-admin-type-row">
+          <label class="af-check-label">
+            <input type="radio" name="af-admin-activity-type" id="af-admin-type-event" value="event" checked /> Arrangement (dato og tid)
+          </label>
+          <label class="af-check-label">
+            <input type="radio" name="af-admin-activity-type" id="af-admin-type-period" value="period" /> Periode-aktivitet
+          </label>
+        </div>
+        <div id="af-admin-event-fields" class="af-admin-date-fields">
+          <label for="af-admin-event-date">Dato (arrangement)</label>
+          <input type="date" id="af-admin-event-date" />
+          <label for="af-admin-event-time">Tidspunkt (f.eks. 10:00)</label>
+          <input type="text" id="af-admin-event-time" placeholder="10:00" />
+        </div>
+        <div id="af-admin-period-fields" class="af-admin-date-fields" style="display:none;">
+          <label for="af-admin-period-start">Periode fra</label>
+          <input type="date" id="af-admin-period-start" />
+          <label for="af-admin-period-end">Periode til (la stå tom for uendelig)</label>
+          <input type="date" id="af-admin-period-end" />
+          <label class="af-check-label">
+            <input type="checkbox" id="af-admin-period-infinite" /> Uendelig periode
+          </label>
+        </div>
+        <label for="af-admin-location">Sted (tekst)</label>
+        <input type="text" id="af-admin-location" />
+        <label>Plasser pin på kartet (klikk der aktiviteten skal være)</label>
+        <div id="af-admin-map" class="af-admin-map" aria-label="Kart for å velge sted"></div>
+        <p class="af-admin-map-hint">Stedet oppdateres når du klikker på kartet.</p>
+        <div class="af-admin-coords-hidden" aria-hidden="true">
+          <label for="af-admin-lat">Breddegrad</label>
+          <input type="number" id="af-admin-lat" step="any" placeholder="59.434" />
+          <label for="af-admin-lng">Lengdegrad</label>
+          <input type="number" id="af-admin-lng" step="any" placeholder="10.658" />
+        </div>
+        <label>Bilde (last opp til Supabase eller lim inn URL)</label>
+        <input type="file" id="af-admin-photo-file" accept="image/*,.pdf" />
+        <input type="url" id="af-admin-photo" placeholder="Eller lim inn bilde-URL (https://...)" />
+        <p id="af-admin-photo-status" class="af-admin-photo-status" aria-live="polite"></p>
+        <label for="af-admin-url">Lenke til aktivitetens nettside</label>
+        <input type="url" id="af-admin-url" placeholder="https://..." />
+        <label class="af-admin-type-label">Pris</label>
+        <div class="af-admin-type-row">
+          <label class="af-check-label">
+            <input type="radio" name="af-admin-price-type" id="af-admin-price-free" value="free" checked />
+            Gratis
+          </label>
+          <label class="af-check-label">
+            <input type="radio" name="af-admin-price-type" id="af-admin-price-paid" value="paid" />
+            Betalt
+          </label>
+        </div>
+        <label class="af-check-label">
+          <input type="checkbox" id="af-admin-weekly" /> Legg til / fjern fra «Ukens aktiviteter»
+        </label>
+        <label for="af-admin-status">Status</label>
+        <select id="af-admin-status">
+          <option value="active">Aktiv</option>
+          <option value="draft">Utkast</option>
+          <option value="archived">Arkivert</option>
+        </select>
+        <div class="af-modal-actions">
+          <button type="button" class="af-button secondary" id="af-admin-close">Avbryt</button>
+          <button type="button" class="af-button primary" id="af-admin-save">Lagre</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="af-consent-overlay" class="af-consent-overlay" role="dialog" aria-modal="true" aria-labelledby="af-consent-title">
+      <div class="af-consent-modal">
+        <h3 id="af-consent-title" class="af-consent-title">Vilkår og anonymisert analyse</h3>
+        <p class="af-consent-text">
+          Når du fortsetter, godkjenner du vilkårene og at vi samler inn <strong>anonymisert</strong> bruksmønster (analytics) for å forbedre tjenesten.
+          Vi bruker dette til innsikt og drift, ikke for å selge persondata.
+        </p>
+        <p class="af-consent-text">
+          Les mer i <a href="./terms.html" target="_blank" rel="noopener">vilkårene</a>.
+        </p>
+        <div class="af-consent-actions">
+          <a class="af-button secondary" href="./terms.html" target="_blank" rel="noopener">Les vilkår</a>
+          <button type="button" class="af-button primary" id="af-consent-accept">Godta og fortsett</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="af-footer">
+      <div class="af-footer-inner">
+        <p>
+          &copy; <span id="year"></span> ActivityFinder. Alle rettigheter reservert.
+          <span class="af-footer-sep">•</span>
+          <a href="./terms.html">Vilkår</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+    <script>window.createClient = window.supabase.createClient;</script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

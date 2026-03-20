@@ -1,0 +1,15 @@
+# Local Supabase config (nøkler skal ikke committes)
+website/config.js
+
+# Dependencies
+node_modules/
+
+# Build / env
+dist/
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+*.log

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vilkår – ActivityFinder</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="af-header">
+      <div class="af-header-inner">
+        <a href="./index.html" class="af-logo">ActivityFinder</a>
+        <nav class="af-nav">
+          <a href="./index.html">Tilbake</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="af-section" style="max-width: 860px; margin: 0 auto;">
+        <div class="af-section-header">
+          <h2>Vilkår for bruk</h2>
+          <p>Sist oppdatert: <span id="af-terms-updated">2026-03-19</span></p>
+        </div>
+
+        <div class="af-card" style="padding: 18px 18px;">
+          <h3>1. Om tjenesten</h3>
+          <p>
+            ActivityFinder er en nettside for å utforske og publisere aktiviteter. Noe innhold kan være brukergenerert, og kan endres eller fjernes.
+          </p>
+
+          <h3>2. Konto og tilgang</h3>
+          <p>
+            For enkelte funksjoner (f.eks. admin/administrasjon) kreves innlogging. Du er ansvarlig for aktiviteter som skjer via kontoen din.
+          </p>
+
+          <h3>3. Brukeratferd, analyse og logging</h3>
+          <p>
+            For å forbedre tjenesten og forstå hvordan siden brukes, samler vi inn teknisk bruksdata (analyse), som kan inkludere:
+          </p>
+          <ul>
+            <li>besøkte sider og handlinger (f.eks. klikk, navigasjon)</li>
+            <li>omtrentlig enhets-/nettleserinformasjon</li>
+            <li>tidspunkt og varighet</li>
+          </ul>
+          <p>
+            Dette spores via Vercel sin analyse-/loggingfunksjonalitet. Dataene brukes til innsikt og drift, ikke for å selge persondata.
+          </p>
+
+          <h3>4. Informasjonskapsler (cookies) og lokal lagring</h3>
+          <p>
+            Nettsiden kan bruke lokal lagring (localStorage) og/eller informasjonskapsler for å holde deg innlogget og for grunnleggende funksjonalitet.
+            Analyseverktøy kan også bruke tilsvarende teknologier.
+          </p>
+
+          <h3>5. Tredjeparter</h3>
+          <p>
+            Tjenesten kan bruke tredjepartsleverandører for drift (f.eks. hosting/analyse via Vercel og databaser/autentisering via Supabase).
+            Disse leverandørene kan behandle tekniske data for å levere tjenesten.
+          </p>
+
+          <h3>6. Ansvarsbegrensning</h3>
+          <p>
+            Tjenesten leveres “som den er”. Vi prøver å holde informasjon oppdatert, men kan ikke garantere at innhold alltid er korrekt.
+            Bruk skjer på eget ansvar.
+          </p>
+
+          <h3>7. Endringer</h3>
+          <p>
+            Vi kan oppdatere vilkårene ved behov. Datoen øverst viser når vilkårene sist ble endret.
+          </p>
+
+          <h3>8. Kontakt</h3>
+          <p>
+            Har du spørsmål om vilkår eller sporing/analyse, ta kontakt med oss via kanalene oppgitt på nettsiden.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="af-footer">
+      <div class="af-footer-inner">
+        <p>&copy; <span id="year"></span> ActivityFinder.</p>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
+

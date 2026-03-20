@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ActivityFinder</title>
+    <meta
+      name="description"
+      content="ActivityFinder – discover, host, and enjoy local adventures together."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- Login Modal -->
+    <div id="login-modal" class="login-modal">
+      <div class="login-modal-content" id="login-content">
+        <h2>Velkommen til ActivityFinder</h2>
+        <p>Logg inn for å fortsette</p>
+        <div class="login-options">
+          <button id="modal-google-signin-btn" class="google-signin-btn">Logg inn med Google</button>
+          <div class="login-divider">
+            <span>eller</span>
+          </div>
+          <form id="email-login-form" class="email-login-form">
+            <input type="email" id="login-email" placeholder="E-postadresse" required />
+            <input type="password" id="login-password" placeholder="Passord" required />
+            <button type="submit" class="primary-btn">Logg inn</button>
+          </form>
+          <p class="login-signup-link">
+            Har du ikke konto? <a href="#" id="show-signup">Registrer deg</a>
+          </p>
+        </div>
+      </div>
+      
+      <!-- Signup Form (hidden by default) -->
+      <div class="login-modal-content" id="signup-content" style="display: none;">
+        <h2>Opprett konto</h2>
+        <p>Registrer deg for å komme i gang</p>
+        <form id="email-signup-form" class="email-login-form">
+          <input type="text" id="signup-name" placeholder="Fullt navn" required />
+          <input type="email" id="signup-email" placeholder="E-postadresse" required />
+          <input type="password" id="signup-password" placeholder="Passord (minst 6 tegn)" required minlength="6" />
+          <input type="password" id="signup-password-confirm" placeholder="Bekreft passord" required minlength="6" />
+          <button type="submit" class="primary-btn">Opprett konto</button>
+        </form>
+        <p class="login-signup-link">
+          Har du allerede konto? <a href="#" id="show-login">Logg inn</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell" id="app-shell" style="display: none;">
+      <header class="top-bar">
+        <button id="logo-button" class="logo-button" aria-label="Go to Discover">
+          <svg class="logo-mark" viewBox="0 0 64 64" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#48C78E" />
+                <stop offset="100%" stop-color="#14A58C" />
+              </linearGradient>
+            </defs>
+            <rect x="6" y="6" width="52" height="52" rx="18" fill="url(#logoGradient)" />
+            <path
+              d="M20 36c6-6 10-12 12-18 2 6 6 12 12 18 3 3 4 7 0 10-4 3-8 0-12-4-4 4-8 7-12 4-4-3-3-7 0-10Z"
+              fill="#ffffff"
+              opacity="0.9"
+            />
+            <circle cx="32" cy="22" r="6" fill="#ffffff" opacity="0.95" />
+          </svg>
+          <span class="logo-type">
+            ActivityFinder
+            <span class="logo-tagline">Aktivitet for Alle!</span>
+          </span>
+        </button>
+        <div class="header-right">
+          <button id="notifications-btn" class="notifications-btn" title="Varsler" style="display: none;">
+            <span class="icon">🔔</span>
+            <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+          </button>
+          <button id="profile-avatar-btn" class="profile-avatar-btn" title="Gå til profil" style="display: none; position: relative;">
+            <img id="header-avatar" class="header-avatar" src="" alt="Profil" />
+            <div id="header-user-type-badge" class="user-type-badge" style="position: absolute; top: -3px; right: -3px; background: var(--green); color: white; border-radius: 50%; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;"></div>
+          </button>
+          <button id="admin-btn" class="admin-btn" title="Administrasjon" style="display: none;">
+            <span class="icon">⚙️</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="view-container">
+        <section id="page-discover" class="view active card" aria-labelledby="nav-discover">
+          <!-- Ukens aktiviteter -->
+          <div class="weekly-activities-section" style="margin-bottom: 1.5rem;">
+            <div class="section-header" style="margin-bottom: 1rem;">
+              <h2 style="margin: 0; font-size: 1.3rem;">Ukens aktiviteter</h2>
+              <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">Populære aktiviteter denne uken</p>
+            </div>
+            <div id="weekly-activities-list" class="weekly-activities-scroll" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; scroll-snap-type: x mandatory;">
+              <!-- Weekly activities will be populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Søk og hurtigfiltre -->
+          <div class="search-filter-section" style="margin-bottom: 1rem;">
+            <div class="search-box" style="margin-bottom: 1rem;">
+              <input type="text" id="activity-search-input" placeholder="Søk etter aktiviteter..." style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid rgba(72, 199, 142, 0.3); font-size: 1rem; background: var(--card);" />
+            </div>
+            
+            <!-- Hurtigfiltre (lett tilgjengelige) -->
+            <div class="quick-filters" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <button class="quick-filter-btn" data-filter="free" style="padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(72, 199, 142, 0.3); background: transparent; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">Gratis</button>
+              <button class="quick-filter-btn" data-filter="family" style="padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(72, 199, 142, 0.3); background: transparent; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">Familieaktivitet</button>
+              <button class="quick-filter-btn" data-filter="children" style="padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(72, 199, 142, 0.3); background: transparent; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">Barneaktivitet</button>
+            </div>
+
+            <!-- Alle filtre (utvidbart) -->
+            <div class="filter-section card" style="padding: 0.75rem;">
+              <div class="filter-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 0.95rem; color: var(--muted);">Flere filtre</h3>
+                <button id="filter-toggle-btn" class="ghost-btn small" style="font-size: 0.85rem;">Vis alle</button>
+              </div>
+              <div id="filter-content" class="filter-content" style="display: none; margin-top: 1rem;">
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Sorter etter:</label>
+                  <select id="sort-select" class="filter-select" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(72, 199, 142, 0.2);">
+                    <option value="relevant">Relevant</option>
+                    <option value="nearest">Nærmest</option>
+                    <option value="trust">Høyest troverdighet</option>
+                  </select>
+                </div>
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Kategori:</label>
+                  <div id="category-filters" class="category-filters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <!-- Categories will be populated dynamically -->
+                  </div>
+                </div>
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Aktivitetstype:</label>
+                  <div class="activity-type-filters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <label class="filter-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                      <input type="checkbox" id="filter-outdoor" class="activity-type-filter" value="outdoor" />
+                      <span>Utendørs</span>
+                    </label>
+                    <label class="filter-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                      <input type="checkbox" id="filter-indoor" class="activity-type-filter" value="indoor" />
+                      <span>Innendørs</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="filter-group">
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Pris:</label>
+                  <div class="price-filters" style="display: flex; gap: 0.75rem;">
+                    <label class="filter-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                      <input type="checkbox" id="filter-free" checked />
+                      <span>Gratis</span>
+                    </label>
+                    <label class="filter-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                      <input type="checkbox" id="filter-paid" checked />
+                      <span>Betalte</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alle aktiviteter -->
+          <div class="all-activities-section">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h2 style="margin: 0; font-size: 1.2rem;">Alle aktiviteter</h2>
+              <div class="view-toggle" role="group" aria-label="Discover view switch" style="margin: 0;">
+                <button id="discover-list-btn" class="toggle-btn active" data-mode="list">Liste</button>
+                <button id="discover-map-btn" class="toggle-btn" data-mode="map">Kart</button>
+              </div>
+            </div>
+            <div id="activity-list" class="card-stack"></div>
+          </div>
+
+          <!-- Kartvisning -->
+          <div class="map-panel hidden" id="map-panel">
+            <div class="map-headline">
+              <div>
+                <h3>Kartvisning</h3>
+                <p>Se alle aktiviteter på kartet</p>
+              </div>
+              <button id="locate-me-btn" type="button" class="ghost-btn">Bruk min posisjon</button>
+            </div>
+            <div class="radius-controls card">
+              <div class="radius-label">
+                <div>
+                  <p>Søk innenfor</p>
+                  <strong id="radius-value">5 km</strong>
+                </div>
+                <span class="radius-hint">Aktiviteter utenfor sirkelen skjules.</span>
+              </div>
+              <input
+                type="range"
+                id="radius-input"
+                min="1"
+                max="50"
+                value="5"
+                step="1"
+                aria-label="Adjust search radius in kilometres"
+              />
+            </div>
+            <div id="activity-map" class="map-area" role="img" aria-label="Activity locations"></div>
+          </div>
+        </section>
+
+        <section id="page-create" class="view card" aria-labelledby="nav-create">
+          <div class="section-header">
+            <h2>Lag Aktivitet</h2>
+            <p id="create-subtitle">Bli vertskap for neste opplevelse.</p>
+          </div>
+          
+          <!-- Application form for regular users -->
+          <div id="activity-leader-application" class="card" style="display: none;">
+            <h3>Bli aktivitetsleder</h3>
+            <p>For å kvalitetssikre aktiviteter er man nødt til å utføre et kurs for å sikre at du opprettholder verdiene og kvaliteten vi vil ha i våre Aktivitetsledere.</p>
+            <p>For å gå videre med kurset kan du trykke her:</p>
+            <button id="start-course-btn" class="primary-btn">Start kurs</button>
+            <div id="course-content" style="display: none; margin-top: 1.5rem;">
+              <div class="course-section">
+                <h4>Kurs 1: Verdier og kvalitet</h4>
+                <p>Les gjennom materialet nedenfor og svar på spørsmålene.</p>
+                <div class="course-material">
+                  <h5>Våre verdier:</h5>
+                  <ul>
+                    <li>Trygghet for alle deltakere</li>
+                    <li>Inkluderende miljø</li>
+                    <li>Miljøbevissthet</li>
+                    <li>Respekt for hverandre</li>
+                  </ul>
+                  <h5>Kvalitetskrav:</h5>
+                  <ul>
+                    <li>Klare instruksjoner</li>
+                    <li>God kommunikasjon</li>
+                    <li>Forberedt utstyr</li>
+                    <li>Nødvendig kompetanse</li>
+                  </ul>
+                </div>
+                <div class="course-questions" style="margin-top: 1rem;">
+                  <label>
+                    <span class="label-text">Hva er viktigst for å opprettholde kvalitet?</span>
+                    <textarea id="course-answer-1" rows="3" placeholder="Skriv ditt svar her..."></textarea>
+                  </label>
+                  <button id="submit-course-btn" class="primary-btn" style="margin-top: 1rem;">Send inn søknad</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <form id="create-form" class="card form-card">
+            <label>
+              <span class="label-text">Navn på aktivitet</span>
+              <input type="text" name="name" placeholder="F.eks. Sunrise Paddle på Vansjø" required />
+            </label>
+            <label>
+              <span class="label-text">Sted</span>
+              <input type="text" name="place" placeholder="F.eks. Vansjø, Moss" required />
+            </label>
+            <div class="location-selection">
+              <label>
+                <span class="label-text">Adresse</span>
+                <input type="text" id="location-address" name="address" placeholder="Kongens gate 42, Moss" style="margin-top: 0.5rem;" />
+              </label>
+              <label style="margin-top: 1rem; display: block;">
+                <span class="label-text">Plasser pin på kart</span>
+                <div id="location-map-container" style="margin-top: 0.5rem; position: relative;">
+                  <div id="location-map" class="location-map" style="height: 300px; border-radius: 12px; overflow: hidden; position: relative; z-index: 1; isolation: isolate;"></div>
+                  <p class="helper-text" style="margin-top: 0.5rem;">Klikk på kartet for å plassere pin</p>
+                </div>
+              </label>
+            </div>
+            <label>
+              <span class="label-text">Dato og tid</span>
+              <input type="datetime-local" name="date" required />
+            </label>
+            <label>
+              <span class="label-text">Pris (kr)</span>
+              <input type="number" name="price" placeholder="0 for gratis" min="0" step="0.01" value="0" />
+            </label>
+            <label>
+              <span class="label-text">Kategori</span>
+              <select name="category" required>
+                <option value="">Velg kategori</option>
+                <option value="Outdoors">Utendørs</option>
+                <option value="Fitness">Trening</option>
+                <option value="Water Sports">Vannsport</option>
+                <option value="Community">Fellesskap</option>
+                <option value="Adventure">Eventyr</option>
+                <option value="Sports">Sport</option>
+                <option value="Wellness">Velvære</option>
+                <option value="Culture">Kultur</option>
+                <option value="Food & Drink">Mat og drikke</option>
+                <option value="Music">Musikk</option>
+                <option value="Art & Creative">Kunst og kreativt</option>
+                <option value="Education">Læring</option>
+                <option value="Volunteer">Frivillig</option>
+              </select>
+            </label>
+            <div class="form-group">
+              <span class="label-text">Aktivitetstype (velg alle som passer)</span>
+              <div id="activity-tags-selection" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="free" style="display: none;" />
+                  <span>Gratis</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="family" style="display: none;" />
+                  <span>Familieaktivitet</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="children" style="display: none;" />
+                  <span>Barneaktivitet</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="outdoor" style="display: none;" />
+                  <span>Utendørs</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="indoor" style="display: none;" />
+                  <span>Innendørs</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="weekend" style="display: none;" />
+                  <span>Helgeaktivitet</span>
+                </label>
+                <label class="tag-checkbox" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(72, 199, 142, 0.3); border-radius: 20px; cursor: pointer; transition: all 0.2s;">
+                  <input type="checkbox" name="tags" value="evening" style="display: none;" />
+                  <span>Kveldsaktivitet</span>
+                </label>
+              </div>
+            </div>
+            <label>
+              <span class="label-text">Beskrivelse</span>
+              <textarea name="description" rows="4" placeholder="Beskriv hva deltakerne kan forvente, hva de bør ta med seg, og hva som gjør denne aktiviteten spesiell."></textarea>
+            </label>
+            <div class="photo-library">
+              <span class="label-text">Velg cover-bilde</span>
+              <div id="photo-library" class="photo-grid" role="radiogroup" aria-label="Standard activity covers"></div>
+              <div id="custom-photo-upload" class="custom-photo-upload" style="display: none;">
+                <label class="upload-label">
+                  <input type="file" id="photo-file-input" accept="image/*" style="display: none;" />
+                  <span class="upload-button">📷 Last opp bilde fra telefon</span>
+                </label>
+                <div id="custom-photo-preview" class="photo-preview"></div>
+              </div>
+            </div>
+            <button type="submit" class="primary-btn">Lagre aktivitet</button>
+            <p class="helper-text">Bli med – møt folk, opplev mer.</p>
+          </form>
+        </section>
+
+        <section id="page-forum" class="view card" aria-labelledby="nav-forum">
+          <div class="section-header">
+            <h2>Diskusjon</h2>
+            <p>Del interesse, gi tilbakemeldinger og finn turfølge.</p>
+          </div>
+          <form id="forum-post-form" class="card forum-form">
+            <h3 class="forum-form-title">Legg ut et innlegg</h3>
+            <div class="forum-input-wrapper">
+              <label>
+                <textarea
+                  name="post"
+                  rows="5"
+                  placeholder="Del feedback, inviter folk til aktiviteter, spør om tips, eller del dine opplevelser..."
+                  required
+                ></textarea>
+              </label>
+              <div class="image-upload-section">
+                <label for="forum-image-input" class="upload-button">
+                  📷 Last opp bilde fra telefon
+                  <input type="file" id="forum-image-input" accept="image/*" multiple style="display: none;" />
+                </label>
+                <div id="forum-image-preview" class="image-preview-container"></div>
+              </div>
+              <button type="submit" class="primary-btn">Publiser innlegg</button>
+            </div>
+          </form>
+          <div id="forum-feed" class="card-stack forum-feed"></div>
+        </section>
+
+        <section id="page-activities" class="view card" aria-labelledby="nav-activities">
+          <div class="section-header">
+            <h2>Mine Aktiviteter</h2>
+            <p>Se hva som kommer, og hva du har opplevd.</p>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Activities view switch">
+            <button id="activities-upcoming-btn" class="toggle-btn active" data-mode="upcoming">Kommende</button>
+            <button id="activities-past-btn" class="toggle-btn" data-mode="past">Tidligere</button>
+            <button id="activities-all-btn" class="toggle-btn" data-mode="all">Arrangerte</button>
+          </div>
+          <div id="my-activities-list" class="card-stack"></div>
+        </section>
+
+        <section id="page-profile" class="view card" aria-labelledby="nav-profile">
+          <div class="section-header">
+            <h2>Profil</h2>
+            <p>Del hvem du er, og hva du liker.</p>
+            <button id="settings-btn" class="settings-btn" title="Innstillinger" style="display: none;">
+              <span class="icon">⚙️</span>
+            </button>
+          </div>
+          <div class="card profile-card">
+            <div class="profile-header">
+              <div class="avatar-container" style="position: relative;">
+                <div class="avatar" id="profile-avatar-display" aria-hidden="true">
+                  <svg viewBox="0 0 80 80" role="img" aria-label="Profile avatar">
+                    <defs>
+                      <linearGradient id="avatarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#48C78E" />
+                        <stop offset="100%" stop-color="#66D1A9" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="80" height="80" rx="22" fill="url(#avatarGradient)" />
+                    <circle cx="40" cy="32" r="16" fill="#ffffff" opacity="0.9" />
+                    <path d="M16 68c6-12 18-18 24-18s18 6 24 18" fill="#ffffff" opacity="0.9" />
+                  </svg>
+                  <img id="profile-avatar-img" class="profile-avatar-img" src="" alt="Profilbilde" style="display: none;" />
+                </div>
+                <div id="user-type-badge" class="user-type-badge" style="position: absolute; top: -5px; right: -5px; background: var(--green); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;"></div>
+                <button id="change-avatar-btn" class="change-avatar-btn" style="display: none;" title="Bytt profilbilde">
+                  <span>📷</span>
+                </button>
+                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" />
+              </div>
+              <div class="profile-info">
+                <h3 id="profile-name"></h3>
+                <div class="bio-container">
+                  <p id="profile-bio" class="profile-bio"></p>
+                  <button id="edit-bio-btn" class="edit-bio-btn" style="display: none;" title="Rediger bio">
+                    <span>✏️</span>
+                  </button>
+                </div>
+                <textarea id="bio-edit-textarea" class="bio-edit-textarea" style="display: none;" rows="2"></textarea>
+                <div id="bio-edit-actions" class="bio-edit-actions" style="display: none;">
+                  <button id="save-bio-btn" class="ghost-btn small">Lagre</button>
+                  <button id="cancel-bio-btn" class="ghost-btn small">Avbryt</button>
+                </div>
+                <p id="profile-email" class="profile-bio small"></p>
+              </div>
+            </div>
+            <div id="auth-actions" class="auth-actions">
+              <button id="google-signin-btn" type="button" class="google-signin-btn">Logg inn med Google</button>
+            </div>
+            <div class="profile-stats">
+              <div>
+                <span id="profile-points" class="stat-number"></span>
+                <p>Poeng</p>
+              </div>
+              <div>
+                <span id="profile-joined" class="stat-number"></span>
+                <p>Deltatt</p>
+              </div>
+              <div>
+                <span id="profile-hosted" class="stat-number"></span>
+                <p>Arrangert</p>
+              </div>
+            </div>
+            <div id="profile-badges" class="profile-badges">
+              <h4>Merker</h4>
+              <div id="badges-list" class="badges-list"></div>
+            </div>
+            <div class="profile-activities-section">
+              <div class="profile-activities-tabs">
+                <button id="profile-upcoming-tab" class="profile-tab active">Kommende</button>
+                <button id="profile-past-tab" class="profile-tab">Tidligere</button>
+              </div>
+              <div id="profile-activities-list" class="card-stack profile-activities-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Activity Detail Modal -->
+        <div id="activity-detail-modal" class="modal-overlay" style="display: none;">
+          <div class="modal-content activity-detail-modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="position: sticky; top: 0; background: var(--card); z-index: 10; padding: 1rem; border-bottom: 1px solid rgba(72, 199, 142, 0.15);">
+              <h3 id="activity-detail-title" style="margin: 0;"></h3>
+              <button id="close-activity-modal" class="modal-close-btn">×</button>
+            </div>
+            <div id="activity-detail-body" class="modal-body" style="padding: 1rem;">
+              <!-- Activity details will be populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Edit Modal -->
+        <div id="profile-edit-modal" class="modal-overlay" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Rediger profil</h3>
+              <button id="close-profile-modal" class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="modal-section">
+                <label>
+                  <span class="label-text">Brukernavn</span>
+                  <input type="text" id="modal-username-input" placeholder="Ditt brukernavn" />
+                </label>
+              </div>
+              <div class="modal-section">
+                <label>
+                  <span class="label-text">Bio</span>
+                  <textarea id="modal-bio-textarea" rows="3" placeholder="Skriv en kort beskrivelse om deg selv..."></textarea>
+                </label>
+              </div>
+              <div class="modal-section">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="modal-show-email-toggle" />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Vis e-postadresse på profil</span>
+                </label>
+              </div>
+              <div class="modal-section">
+                <label>
+                  <span class="label-text">Profilbilde</span>
+                  <div class="modal-avatar-preview">
+                    <img id="modal-avatar-preview-img" src="" alt="Forhåndsvisning" style="display: none;" />
+                    <div id="modal-avatar-preview-svg" class="modal-avatar-svg"></div>
+                  </div>
+                  <input type="file" id="modal-avatar-input" accept="image/*" />
+                </label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button id="save-profile-modal-btn" class="primary-btn">Lagre endringer</button>
+              <button id="cancel-profile-modal-btn" class="ghost-btn">Avbryt</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badge Popup Modal -->
+        <div id="badge-popup-modal" class="badge-popup-modal" style="display: none;">
+          <div class="badge-popup-content">
+            <div class="badge-popup-icon"></div>
+            <h3>Gratulerer!</h3>
+            <p>Du har oppnådd et merke!</p>
+            <p class="badge-popup-name"></p>
+            <button id="close-badge-popup" class="primary-btn">Lukk</button>
+          </div>
+        </div>
+
+        <!-- Badge Detail Modal -->
+        <div id="badge-detail-modal" class="modal-overlay" style="display: none;">
+          <div class="modal-content badge-detail-content">
+            <div class="modal-header">
+              <h3 class="badge-detail-name"></h3>
+              <button id="close-badge-detail" class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="badge-detail-icon"></div>
+              <p class="badge-detail-description"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Dropdown -->
+        <div id="notification-dropdown" class="notification-dropdown" style="display: none;">
+          <div class="notification-dropdown-header">
+            <h3>Varsler</h3>
+          </div>
+          <div id="notifications-container" class="notifications-container">
+            <p class="empty-state">Du har ingen nye varsler.</p>
+          </div>
+        </div>
+
+        <section id="page-settings" class="view card" aria-labelledby="nav-settings">
+          <div class="section-header">
+            <h2>Innstillinger</h2>
+            <p>Administrer konto og preferanser.</p>
+          </div>
+          <div class="card settings-card">
+            <div class="settings-section">
+              <h3>Tema</h3>
+              <div class="settings-option">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="dark-mode-toggle" />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">Mørkt tema</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h3>Konto</h3>
+              <button id="settings-signout-btn" class="ghost-btn danger" style="display: none;">Logg ut</button>
+              <button id="delete-account-btn" class="ghost-btn danger" style="display: none;">Slett konto</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-admin" class="view card" aria-labelledby="nav-admin">
+          <div class="section-header">
+            <h2>Administrasjon</h2>
+            <p>Administrer brukere og aktiviteter.</p>
+          </div>
+          <div class="card admin-card">
+            <div class="admin-section">
+              <h3>Brukere</h3>
+              <p>Her kan du administrere brukere og deres tilganger.</p>
+              <div id="admin-users-list" class="admin-list"></div>
+            </div>
+            <div class="admin-section">
+              <h3>Aktiviteter</h3>
+              <p>Her kan du administrere alle aktiviteter.</p>
+              <div id="admin-activities-list" class="admin-list"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button id="nav-discover" data-target="page-discover" class="nav-btn active">
+          <span class="icon">🧭</span>
+          <span>Utforsk</span>
+        </button>
+        <button id="nav-activities" data-target="page-activities" class="nav-btn">
+          <span class="icon">🗓️</span>
+          <span>Mine Aktiviteter</span>
+        </button>
+        <button id="nav-create" data-target="page-create" class="nav-btn" style="display: none;">
+          <span class="icon">➕</span>
+          <span>Lag Aktivitet</span>
+        </button>
+        <button id="nav-forum" data-target="page-forum" class="nav-btn">
+          <span class="icon">💬</span>
+          <span>Diskusjon</span>
+        </button>
+        <button id="nav-profile" data-target="page-profile" class="nav-btn">
+          <span class="icon">👤</span>
+          <span>Profil</span>
+        </button>
+      </nav>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+
+
