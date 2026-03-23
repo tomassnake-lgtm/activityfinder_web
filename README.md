@@ -64,16 +64,85 @@ Ved `git push` logger du inn på GitHub (nettleser eller brukernavn + **Personal
 
 ---
 
-## Supabase-konfigurasjon (hemmeligheter)
+## Supabase-konfigurasjon (hemmeligheter) – forklart steg for steg
 
-- **`website/config.js`** inneholder API-nøkler og er **ikke** med i Git (se `.gitignore`).
-- Etter `git clone`: kopier `website/config.example.js` til `website/config.js` og fyll inn dine verdier fra Supabase.
+Nettsiden i mappen `website/` må vite **hvilket Supabase-prosjekt** den skal snakke med. Det gjør den via filen **`website/config.js`**, som setter to verdier i nettleseren:
 
-```powershell
-copy website\config.example.js website\config.js
-```
+- **Project URL** – adressen til Supabase-prosjektet ditt  
+- **anon (public) key** – en offentlig nøkkel som brukes fra frontend (den er ment å ligge i nettleseren, men vi unngår likevel å legge den åpent på GitHub i dette oppsettet)
 
-Rediger deretter `config.js` med din **Project URL** og **anon public key**.
+### Hvorfor står dette i README når du allerede har pushet til GitHub?
+
+- Filen **`website/config.js`** er listet i **`.gitignore`**. Det betyr: Git / GitHub Desktop **committer den ikke** (med mindre den ble lagt til før ignore-regelen).  
+- På GitHub ligger derfor ofte bare **`website/config.example.js`** – en **mal uten ekte nøkler**, så andre (eller du på en ny PC) vet *hva* som må fylles inn.
+- **På din egen maskin** har du (eller lager du) en ekte **`config.js`** med dine verdier, slik at nettsiden fungerer lokalt.
+
+### Hvis du **allerede** har `website/config.js` på PC-en
+
+Da trenger du **ikke** å kopiere noe – bare åpne `website/config.js` og sjekk at URL og nøkkel stemmer med Supabase. Hopp over kopier-steget under.
+
+### Hvis du **mangler** `config.js` (ny PC, eller du slettet filen)
+
+1. Åpne **PowerShell** og gå til **rotmappen** til prosjektet (den med `website`-mappen):
+
+   ```powershell
+   cd "C:\Users\Lenovo\Documents\Alle Dokumenter\Jobb\ActivityFinder\Cursor AI APP"
+   ```
+
+2. Kopier malen til en ny fil som heter `config.js`:
+
+   ```powershell
+   copy website\config.example.js website\config.js
+   ```
+
+3. Åpne **`website/config.js`** i Cursor/Notepad og erstatt platsholderne:
+   - `https://DITT-PROSJEKT.supabase.co` → din **Project URL**
+   - `DIN_ANON_PUBLIC_KEY_HER` → din **anon public** API-nøkkel
+
+4. **Hvor finner du URL og nøkkel i Supabase?**
+   - Logg inn på [supabase.com](https://supabase.com) → velg prosjektet ditt  
+   - Gå til **Project Settings** (tannhjul) → **API**  
+   - Under **Project URL** kopierer du URL-en  
+   - Under **Project API keys** bruker du **`anon` `public`** (ikke `service_role` – den skal aldri i frontend-kode som lastes i nettleseren)
+
+5. Lagre `config.js`. Kjør nettsiden lokalt (`cd website` → `npx serve .`) og test innlogging / aktiviteter.
+
+### Viktig å huske
+
+- **`service_role`-nøkkelen** skal **aldri** i `config.js` eller i GitHub – den omgår sikkerhetsregler.  
+- **Vercel:** Se avsnittet [Deploy på Vercel](#deploy-på-vercel) under – der genereres `config.js` fra miljøvariabler ved deploy.
+
+---
+
+## Deploy på Vercel
+
+I samme Git-repo ligger **Vite/React-appen** (rot `package.json`) og den **statiske nettsiden** i mappen **`website/`**. Vercel velger ofte automatisk Vite og bygger `dist/` – da får du «feil» side.
+
+### Løsning i dette prosjektet
+
+1. **Filen `vercel.json` i rot** er satt opp til å:
+   - **ikke** bruke Vite som rammeverk for denne deployen (`framework: null`)
+   - **hoppe over** `npm install` i rot (`installCommand: true` – vi trenger ikke `node_modules` for den statiske siden)
+   - kjøre **`node scripts/vercel-website-config.js`** som lager **`website/config.js`** fra miljøvariabler
+   - publisere innholdet i **`website/`** som nettside (`outputDirectory: "website"`)
+
+2. **I Vercel Dashboard** (Project → **Settings** → **Environment Variables**), legg inn for **Production** (og ev. Preview):
+
+   | Navn | Verdi |
+   |------|--------|
+   | `SUPABASE_URL` | Din Project URL fra Supabase (Settings → API) |
+   | `SUPABASE_ANON_KEY` | `anon` `public` nøkkelen (ikke `service_role`) |
+
+3. **Deploy på nytt** (Redeploy) etter at variablene er lagret.
+
+### Alternativ: kun endre innstillinger i Vercel (uten å stole på `vercel.json`)
+
+1. **Settings** → **General** → **Root Directory** → sett til **`website`**
+2. **Settings** → **General** → **Framework Preset** → **Other**
+3. **Build Command** → tom (ingen build)
+4. **Output Directory** → **`.`** (punktum, siden roten nå er `website`)
+
+Da må du fortsatt sørge for at **`config.js` finnes** på deploy (f.eks. ved å bruke scriptet over i en egen build, eller midlertidig commit av config – ikke anbefalt for offentlig repo).
 
 ---
 
@@ -97,6 +166,8 @@ Mer detaljer finnes i `website/SUPABASE-SETUP.md` om du bruker Supabase.
 | Mappe / fil | Innhold |
 |-------------|---------|
 | `website/` | Statisk nettside (`index.html`, `app.js`, `styles.css`) |
+| `vercel.json` | Deploy av **website/** til Vercel (ikke Vite-appen i rot) |
+| `scripts/vercel-website-config.js` | Lager `website/config.js` på Vercel fra miljøvariabler |
 | `supabase/` | SQL og dokumentasjon for database |
 | `src/` | Annen app-kode (f.eks. Vite/React) om du bruker den |
 
