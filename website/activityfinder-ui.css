@@ -1,4 +1,7 @@
-:root {
+/* ActivityFinder UI – build id: ui-20260324-themefix
+ * Mørk modus: IKKE bruk :root for variabler her – det er samme element som <html>, og kan kollidere med lys modus.
+ * Kun én av blokkene under matcher <html> om gangen. */
+html:not([data-theme="light"]) {
   --af-bg: #050a06;
   --af-surface: #0a120b;
   --af-surface-soft: #0f1810;
@@ -277,7 +280,17 @@ main {
 .af-activity-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(5, 26, 6, 0.97) 0%, rgba(13, 26, 14, 0.85) 40%, rgba(13, 26, 14, 0.5) 70%, rgba(13, 26, 14, 0.1) 100%);
+  /* To lag: mørk bunn for tekst som går lavt + sterk venstreside mot bildet */
+  background:
+    linear-gradient(to bottom, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.5) 72%, rgba(0, 0, 0, 0.78) 100%),
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.72) 32%,
+      rgba(0, 0, 0, 0.42) 58%,
+      rgba(0, 0, 0, 0.12) 82%,
+      transparent 100%
+    );
   border-radius: 18px;
   pointer-events: none;
 }
@@ -296,21 +309,37 @@ main {
 .af-activity-card .af-activity-card-title {
   margin: 0 0 4px;
   font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #f9fafb;
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 1),
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 2px 14px rgba(0, 0, 0, 0.75);
 }
 
 .af-activity-card p,
 .af-activity-card .af-activity-card-desc {
   margin: 0;
-  color: var(--af-text-muted);
+  color: rgba(243, 244, 246, 0.95);
   font-size: 0.9rem;
+  line-height: 1.45;
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 1),
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 2px 10px rgba(0, 0, 0, 0.65);
 }
 
 .af-activity-card-time,
 .af-activity-card-price {
   margin: 4px 0 0;
   font-size: 0.85rem;
-  color: var(--af-accent);
-  font-weight: 500;
+  color: #6ee7b7;
+  font-weight: 600;
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 1),
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
 .af-map-container {
@@ -462,8 +491,18 @@ body.af-map-expanded #af-map.af-map-view {
   margin-top: 6px;
   padding: 0;
   font-size: 0.85rem;
-  color: var(--af-accent);
+  color: #6ee7b7;
+  font-weight: 600;
   align-self: flex-start;
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 1),
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.af-card-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Modal: knappen «Gå til nettside» like bred som teksten */
@@ -678,4 +717,362 @@ body.af-map-expanded #af-map.af-map-view {
 /* Modal time and price */
 .af-modal-time-place { margin: 0 0 8px; font-size: 0.9rem; color: var(--af-text-muted); }
 .af-modal-price { margin: 0 0 12px; font-size: 0.95rem; color: var(--af-accent); font-weight: 600; }
+
+/* Profil: lys/mørk (kun synlig når innlogget) */
+.af-theme-row {
+  margin: 16px 0 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--af-border-soft);
+  border-bottom: 1px solid var(--af-border-soft);
+}
+.af-theme-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--af-text-muted);
+  margin-bottom: 8px;
+}
+.af-theme-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.af-theme-btn.af-theme-btn-active {
+  background: var(--af-accent-soft);
+  border-color: var(--af-accent);
+  color: var(--af-text);
+}
+
+/* Lys modus: tydelig grønn profil + myke hvite flater */
+html[data-theme="light"] {
+  --af-bg: #c4e0d2;
+  --af-surface: #e6f4ec;
+  --af-surface-soft: #cce9d8;
+  --af-accent: #0a7a52;
+  --af-accent-soft: rgba(10, 122, 82, 0.22);
+  --af-text: #143028;
+  --af-text-muted: #3d6354;
+  --af-border-soft: rgba(10, 122, 82, 0.28);
+  --af-border-light: rgba(10, 122, 82, 0.18);
+  --af-shadow-card:
+    0 1px 2px rgba(45, 60, 52, 0.05),
+    0 8px 28px rgba(45, 60, 52, 0.08),
+    0 0 0 1px rgba(88, 102, 95, 0.1);
+  --af-shadow-modal:
+    0 4px 8px rgba(45, 60, 52, 0.06),
+    0 24px 56px rgba(45, 60, 52, 0.12),
+    0 0 0 1px rgba(88, 102, 95, 0.12);
+  --af-shadow-soft: 0 12px 40px rgba(45, 60, 52, 0.1);
+}
+
+html[data-theme="light"] .af-header {
+  background:
+    radial-gradient(ellipse 100% 120% at 15% 0%, rgba(52, 211, 153, 0.38) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 100% at 90% 20%, rgba(16, 185, 129, 0.26) 0%, transparent 50%),
+    linear-gradient(
+      to bottom,
+      rgba(220, 252, 231, 0.98) 0%,
+      rgba(187, 247, 208, 0.55) 42%,
+      rgba(167, 243, 208, 0.45) 100%
+    );
+  border-bottom: 1px solid rgba(10, 122, 82, 0.24);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 4px 20px rgba(10, 122, 82, 0.1),
+    0 8px 36px rgba(16, 185, 129, 0.1);
+}
+
+html[data-theme="light"] .af-hero-content {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(52, 211, 153, 0.38) 0%, transparent 42%),
+    radial-gradient(circle at 88% 92%, rgba(16, 185, 129, 0.3) 0%, transparent 45%),
+    linear-gradient(145deg, #ecfdf5 0%, #bbf7d0 38%, #86efac 100%);
+  border: 1px solid rgba(10, 122, 82, 0.26);
+  box-shadow: var(--af-shadow-card);
+}
+
+html[data-theme="light"] .af-hero-content h1 {
+  color: #0a3d28;
+}
+
+html[data-theme="light"] .af-hero-content p {
+  color: #1d5240;
+}
+
+html[data-theme="light"] .af-section {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(52, 211, 153, 0.28) 0%, transparent 48%),
+    radial-gradient(circle at 100% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 42%),
+    linear-gradient(165deg, #ecfdf5 0%, #d1fae5 42%, #bbf7d0 100%);
+  border: 1px solid rgba(10, 122, 82, 0.24);
+  box-shadow: var(--af-shadow-card);
+}
+
+/* Myke, lyse grønne «bokser» – ukens aktiviteter, filter, liste, kart */
+html[data-theme="light"] .af-section.af-weekly {
+  background:
+    radial-gradient(ellipse 90% 70% at 20% 0%, rgba(134, 239, 172, 0.65) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(110, 231, 183, 0.5) 0%, transparent 50%),
+    linear-gradient(180deg, #f0fdf4 0%, #d1fae5 40%, #bbf7d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.42);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 6px 28px rgba(16, 185, 129, 0.12),
+    0 0 0 1px rgba(220, 252, 231, 0.95);
+}
+
+html[data-theme="light"] .af-section.af-filters {
+  background:
+    radial-gradient(ellipse 85% 60% at 50% 0%, rgba(110, 231, 183, 0.55) 0%, transparent 52%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 45%, #bbf7d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 4px 24px rgba(52, 211, 153, 0.12);
+}
+
+html[data-theme="light"] .af-section.af-activities {
+  background:
+    radial-gradient(ellipse 80% 55% at 0% 30%, rgba(167, 243, 208, 0.65) 0%, transparent 52%),
+    radial-gradient(ellipse 60% 45% at 95% 80%, rgba(134, 239, 172, 0.5) 0%, transparent 48%),
+    linear-gradient(175deg, #f0fdf4 0%, #d1fae5 38%, #a7f3d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.38);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 8px 32px rgba(52, 211, 153, 0.1);
+}
+
+html[data-theme="light"] .af-section.af-map {
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(110, 231, 183, 0.55) 0%, transparent 58%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 50%, #bbf7d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 6px 30px rgba(16, 185, 129, 0.11);
+}
+
+html[data-theme="light"] .af-button.primary {
+  color: #fbfcfb;
+  box-shadow:
+    0 2px 4px rgba(13, 95, 65, 0.15),
+    0 8px 22px rgba(13, 143, 95, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+html[data-theme="light"] .af-button.secondary {
+  background: linear-gradient(180deg, #f0fdf4 0%, #d1fae5 100%);
+  border: 1px solid var(--af-border-soft);
+  color: var(--af-text);
+  box-shadow: 0 2px 8px rgba(45, 60, 52, 0.06), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+
+html[data-theme="light"] .af-button.secondary:hover {
+  border-color: rgba(13, 143, 95, 0.35);
+  box-shadow: 0 4px 14px rgba(45, 60, 52, 0.08);
+}
+
+html[data-theme="light"] .af-modal {
+  border: 1px solid var(--af-border-soft);
+  box-shadow: var(--af-shadow-modal);
+  background: linear-gradient(180deg, #f0fdf4 0%, #d8f0e3 100%);
+}
+
+html[data-theme="light"] .af-modal-close {
+  background: rgba(88, 102, 95, 0.08);
+  border: 1px solid var(--af-border-light);
+  color: var(--af-text);
+  box-shadow: 0 1px 2px rgba(45, 60, 52, 0.05);
+}
+
+html[data-theme="light"] .af-modal-close:hover {
+  background: rgba(88, 102, 95, 0.12);
+  color: var(--af-text);
+}
+
+html[data-theme="light"] .af-footer {
+  background:
+    linear-gradient(to top, #9dceb4 0%, #b5dcc6 35%, #cce9d8 70%, #dff3e6 100%);
+  border-top: 1px solid rgba(10, 122, 82, 0.26);
+  box-shadow:
+    0 -6px 28px rgba(10, 122, 82, 0.08),
+    0 -1px 0 rgba(255, 255, 255, 0.55) inset;
+}
+
+html[data-theme="light"] .af-consent-modal {
+  border: 1px solid var(--af-border-soft);
+  box-shadow: var(--af-shadow-modal);
+  background: linear-gradient(180deg, #fbfcfb 0%, #f2f6f3 100%);
+}
+
+html[data-theme="light"] .af-consent-overlay {
+  background: rgba(35, 48, 42, 0.42);
+}
+
+html[data-theme="light"] .af-google-btn {
+  background: linear-gradient(180deg, #f4fcf7 0%, #d8f0e3 100%);
+  color: var(--af-text);
+  border: 1px solid var(--af-border-soft);
+  box-shadow: 0 2px 8px rgba(45, 60, 52, 0.07);
+}
+
+html[data-theme="light"] .af-google-btn:hover {
+  box-shadow: 0 4px 14px rgba(45, 60, 52, 0.1);
+}
+
+html[data-theme="light"] .af-search-box {
+  border: 1px solid rgba(74, 222, 128, 0.55);
+  background: linear-gradient(180deg, #f0fdf4 0%, #d1fae5 35%, #bbf7d0 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 3px 16px rgba(52, 211, 153, 0.18);
+}
+
+html[data-theme="light"] .af-expanded-filters {
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+  box-shadow: 0 2px 14px rgba(52, 211, 153, 0.1) inset;
+}
+
+html[data-theme="light"] .af-filter-icon-btn {
+  background: rgba(209, 250, 229, 0.95);
+  border: 1px solid rgba(74, 222, 128, 0.55);
+  color: #0a6b48;
+}
+
+html[data-theme="light"] .af-filter-icon-btn:hover {
+  background: rgba(187, 247, 208, 0.98);
+}
+
+html[data-theme="light"] .af-filter-icon-btn.af-active {
+  background: linear-gradient(180deg, #86efac 0%, #4ade80 100%);
+  color: #064e3b;
+  border-color: rgba(22, 163, 74, 0.45);
+}
+
+html[data-theme="light"] .af-filters .af-chip {
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: rgba(240, 253, 244, 0.9);
+  color: #2d5a45;
+}
+
+html[data-theme="light"] .af-filters .af-chip:hover {
+  background: rgba(209, 250, 229, 1);
+  border-color: rgba(52, 211, 153, 0.55);
+}
+
+html[data-theme="light"] .af-filters .af-chip-active {
+  background: linear-gradient(180deg, #86efac 0%, #4ade80 100%);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #064e3b;
+}
+
+html[data-theme="light"] .af-weekly-card {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(134, 239, 172, 0.7) 0%, transparent 58%),
+    linear-gradient(180deg, #f0fdf4 0%, #d1fae5 45%, #bbf7d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 6px 22px rgba(16, 185, 129, 0.12);
+}
+
+html[data-theme="light"] .af-activity-card {
+  background:
+    radial-gradient(circle at 25% 0%, rgba(110, 231, 183, 0.55) 0%, transparent 50%),
+    linear-gradient(175deg, #ecfdf5 0%, #d1fae5 40%, #a7f3d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 4px 18px rgba(52, 211, 153, 0.12);
+}
+
+html[data-theme="light"] .af-profile-login input[type="email"],
+html[data-theme="light"] .af-profile-login input[type="password"] {
+  border: 1px solid var(--af-border-soft);
+  background: var(--af-surface);
+  box-shadow: 0 1px 3px rgba(45, 60, 52, 0.04) inset;
+}
+
+html[data-theme="light"] .af-admin-row {
+  border: 1px solid var(--af-border-soft);
+  box-shadow: 0 2px 8px rgba(45, 60, 52, 0.04);
+}
+
+html[data-theme="light"] .af-admin-form input[type="text"],
+html[data-theme="light"] .af-admin-form input[type="url"],
+html[data-theme="light"] .af-admin-form input[type="number"],
+html[data-theme="light"] .af-admin-form textarea,
+html[data-theme="light"] .af-admin-form select,
+html[data-theme="light"] .af-admin-form input[type="date"] {
+  border: 1px solid var(--af-border-soft);
+  background: var(--af-surface);
+  box-shadow: 0 1px 2px rgba(45, 60, 52, 0.04) inset;
+}
+
+html[data-theme="light"] .af-quick-filter {
+  border: 1px solid rgba(74, 222, 128, 0.48);
+  background: rgba(240, 253, 244, 0.85);
+  box-shadow: 0 1px 3px rgba(52, 211, 153, 0.1);
+}
+
+html[data-theme="light"] .af-quick-filter:hover {
+  background: rgba(209, 250, 229, 0.98);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
+html[data-theme="light"] .af-quick-filter-active {
+  background: linear-gradient(180deg, #86efac 0%, #4ade80 100%);
+  border-color: rgba(22, 163, 74, 0.42);
+  box-shadow: 0 2px 12px rgba(52, 211, 153, 0.22);
+}
+
+html[data-theme="light"] .af-map-container {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(110, 231, 183, 0.65) 0%, transparent 55%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 40%, #bbf7d0 100%);
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 6px 26px rgba(16, 185, 129, 0.12);
+  border-radius: var(--af-radius-lg);
+  overflow: hidden;
+}
+
+/* Tvinger lys bakgrunn på body (overstyrer evt. annen CSS / cache-gamle regler) */
+html[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse 130% 90% at 50% -15%, rgba(52, 211, 153, 0.48) 0%, transparent 52%),
+    radial-gradient(ellipse 100% 70% at 0% 50%, rgba(16, 185, 129, 0.32) 0%, transparent 48%),
+    radial-gradient(ellipse 80% 60% at 100% 30%, rgba(5, 150, 105, 0.24) 0%, transparent 45%),
+    linear-gradient(180deg, #d1fae5 0%, #b8e8cc 35%, #9dd9b8 100%) !important;
+  color: var(--af-text) !important;
+}
+
+html[data-theme="light"] .af-nav a {
+  color: #3d6b58;
+}
+
+html[data-theme="light"] .af-nav a:hover {
+  background: rgba(10, 122, 82, 0.14);
+  color: #0a7a52;
+}
+
+/* ActivityFinder-logo: tydelig grønn */
+html[data-theme="light"] a.af-logo {
+  color: #047857 !important;
+  border: 2px solid rgba(5, 150, 105, 0.55);
+  background:
+    linear-gradient(145deg, rgba(209, 250, 229, 0.95) 0%, rgba(167, 243, 208, 0.65) 45%, rgba(110, 231, 183, 0.35) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset,
+    0 2px 12px rgba(5, 150, 105, 0.2),
+    0 4px 20px rgba(16, 185, 129, 0.12);
+}
+
+html[data-theme="light"] a.af-logo:hover {
+  color: #065f46 !important;
+  border-color: rgba(4, 120, 87, 0.65);
+  background:
+    linear-gradient(145deg, rgba(220, 252, 231, 1) 0%, rgba(134, 239, 172, 0.5) 50%, rgba(74, 222, 128, 0.3) 100%);
+}
 

@@ -8,6 +8,7 @@
   var adminMapMarker = null;
   var STORAGE_BUCKET = 'activity_images';
   var CONSENT_KEY = 'af_consent_tos_analytics_v1';
+  var THEME_KEY = 'af_color_theme';
   var weeklyTimerId = null;
   var weeklyIndex = 0;
   var WEEKLY_ROTATE_MS = 5000;
@@ -19,10 +20,13 @@
 
   function getSupabase() {
     if (supabase) return supabase;
-    var url = window.SUPABASE_URL;
-    var key = window.SUPABASE_ANON_KEY;
+    var url = String(window.SUPABASE_URL || '').trim();
+    var key = String(window.SUPABASE_ANON_KEY || '').trim();
     if (!url || !key || url.indexOf('ditt-prosjekt') !== -1) {
-      console.warn('ActivityFinder: Mangler config.js eller Supabase-verdier. Kopier config.example.js til config.js.');
+      console.warn(
+        'ActivityFinder: Mangler Supabase URL/anon-nøkkel. Lokalt: fyll website/config.js eller supabase-runtime.js. ' +
+          'På Vercel: sett SUPABASE_URL og SUPABASE_ANON_KEY under Environment Variables og redeploy.'
+      );
       return null;
     }
     if (typeof createClient === 'undefined') {
@@ -123,27 +127,39 @@
           var profile = res.data || null;
           renderAuthUI(session, profile);
           updateProfilePage(session, profile);
+          syncThemeForSession(session);
           if (window.location.hash === '#admin') loadAdminActivities();
         })
         .catch(function () {
           renderAuthUI(session, null);
           updateProfilePage(session, null);
+          syncThemeForSession(session);
         });
     } else {
       renderAuthUI(null, null);
       updateProfilePage(null, null);
+      syncThemeForSession(null);
     }
   }
 
   window.afLogin = function (email, password) {
     var sb = getSupabase();
-    if (!sb) return Promise.reject(new Error('Supabase ikke konfigurert'));
+    if (!sb) {
+      return Promise.reject(new Error(
+        'Supabase er ikke konfigurert (mangler URL/nøkkel). Sjekk supabase-runtime.js på server eller config.js lokalt.'
+      ));
+    }
     return sb.auth.signInWithPassword({ email: email, password: password });
   };
 
   window.afLoginGoogle = function () {
     var sb = getSupabase();
-    if (!sb) return Promise.reject(new Error('Supabase ikke konfigurert'));
+    if (!sb) {
+      return Promise.reject(new Error(
+        'Supabase er ikke konfigurert på denne adressen (mangler URL/nøkkel i nettleseren). ' +
+        'På Vercel: sjekk at SUPABASE_URL og SUPABASE_ANON_KEY er satt og at siste deploy er grønn.'
+      ));
+    }
     var base = window.location.origin + window.location.pathname;
     var redirectTo = base.split('#')[0];
     return sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo } });
@@ -152,9 +168,55 @@
   window.afLogout = function () {
     var sb = getSupabase();
     if (sb) sb.auth.signOut();
+    syncThemeForSession(null);
     window.location.hash = '';
     showSection('af-page-home');
   };
+
+  function normalizeThemeMode(mode) {
+    var m = String(mode || 'dark').toLowerCase();
+    return m === 'light' ? 'light' : 'dark';
+  }
+
+  function syncThemeForSession(session) {
+    var root = document.documentElement;
+    if (!session) {
+      root.setAttribute('data-theme', 'dark');
+      updateThemeButtons('dark');
+      return;
+    }
+    var pref = 'dark';
+    try {
+      pref = window.localStorage.getItem(THEME_KEY) || 'dark';
+    } catch (e) {
+      pref = 'dark';
+    }
+    pref = normalizeThemeMode(pref);
+    root.setAttribute('data-theme', pref);
+    updateThemeButtons(pref);
+  }
+
+  function updateThemeButtons(mode) {
+    var d = document.getElementById('af-theme-dark');
+    var l = document.getElementById('af-theme-light');
+    if (d) {
+      d.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+      d.classList.toggle('af-theme-btn-active', mode === 'dark');
+    }
+    if (l) {
+      l.setAttribute('aria-pressed', mode === 'light' ? 'true' : 'false');
+      l.classList.toggle('af-theme-btn-active', mode === 'light');
+    }
+  }
+
+  function setLoggedInTheme(mode) {
+    var m = normalizeThemeMode(mode);
+    try {
+      window.localStorage.setItem(THEME_KEY, m);
+    } catch (e) {}
+    document.documentElement.setAttribute('data-theme', m);
+    updateThemeButtons(m);
+  }
 
   function fetchActivities() {
     var sb = getSupabase();
@@ -893,6 +955,7 @@
   }
 
   function init() {
+    document.documentElement.setAttribute('data-theme', 'dark');
     document.getElementById('year').textContent = new Date().getFullYear();
     window.addEventListener('hashchange', onHashChange);
     setupSearchAndFilters();
@@ -934,6 +997,12 @@
     }
     document.getElementById('af-logout-btn')?.addEventListener('click', function () {
       window.afLogout();
+    });
+    document.getElementById('af-theme-dark')?.addEventListener('click', function () {
+      setLoggedInTheme('dark');
+    });
+    document.getElementById('af-theme-light')?.addEventListener('click', function () {
+      setLoggedInTheme('light');
     });
     document.getElementById('af-login-google')?.addEventListener('click', function () {
       window.afLoginGoogle().catch(function (err) {

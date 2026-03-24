@@ -123,8 +123,10 @@ I samme Git-repo ligger **Vite/React-appen** (rot `package.json`) og den **stati
 1. **Filen `vercel.json` i rot** er satt opp til å:
    - **ikke** bruke Vite som rammeverk for denne deployen (`framework: null`)
    - **hoppe over** `npm install` i rot (`installCommand: true` – vi trenger ikke `node_modules` for den statiske siden)
-   - kjøre **`node scripts/vercel-website-config.js`** som lager **`website/config.js`** fra miljøvariabler
+   - kjøre **`node scripts/vercel-website-config.js`**, som skriver **`website/supabase-runtime.js`** (og `config.js`) fra miljøvariabler. `supabase-runtime.js` er **ikke** i `.gitignore`, så den kommer alltid med i deploy – det unngår «Supabase ikke konfigurert» når `config.js` mangler i bygg-artefaktet.
    - publisere innholdet i **`website/`** som nettside (`outputDirectory: "website"`)
+
+   Hvis `SUPABASE_URL` eller `SUPABASE_ANON_KEY` mangler i Vercel, **feiler bygget** med rød deploy (med vilje), så du ser det med én gang.
 
 2. **I Vercel Dashboard** (Project → **Settings** → **Environment Variables**), legg inn for **Production** (og ev. Preview):
 
@@ -148,14 +150,33 @@ Da må du fortsatt sørge for at **`config.js` finnes** på deploy (f.eks. ved �
 
 ## Kjøre nettsiden lokalt
 
-Fra rotmappen (eller fra `website/`):
+**Viktig:** I prosjektroten ligger **to** ting: Vite/React-appen (`index.html` + `src/`) og den statiske nettsiden i **`website/`**.  
+Hvis du kjører `npx serve .` **fra rot** og åpner `http://localhost:3000/`, får du **ikke** `website/`-versjonen – du får rot-`index.html`. Da ser du **ikke** endringer i `website/activityfinder-ui.css` osv.
+
+**Slik ser du riktig nettside:**
 
 ```powershell
 cd website
 npx serve .
 ```
 
-Åpne nettleseren på adressen som vises i terminalen (ofte `http://localhost:3000`).
+Eller fra rot (uten å bytte mappe):
+
+- Åpne **`http://localhost:3000/website/`** (merk `/website/` på slutten).
+
+Eller bruk npm-script fra rot:
+
+```powershell
+npm run serve:web
+```
+
+Etter endringer i CSS/JS: bruk **hard refresh** (Ctrl+Shift+R) eller «Empty cache» – ellers kan nettleseren vise gammel CSS (HTTP 304).
+
+**Sjekk at du får ny HTML:** Høyreklikk → **Vis sidekilde** (Ctrl+U) og søk etter `activityfinder-ui.css`. Stilarket heter **`website/activityfinder-ui.css`**.
+
+**304 på CSS lokalt:** Nettleseren kan bruke gammel hurtiglagret CSS. Kjør `serve` med **`--no-etag`**: `npm run serve:root` (fra rot) eller `npm run serve:web` (kun `website/`). Alternativt: tøm nettleserdata for `localhost`.
+
+Ved `npx serve .` fra rot brukes **`serve.json`** (start `serve` på nytt etter endring).
 
 Mer detaljer finnes i `website/SUPABASE-SETUP.md` om du bruker Supabase.
 
@@ -165,7 +186,7 @@ Mer detaljer finnes i `website/SUPABASE-SETUP.md` om du bruker Supabase.
 
 | Mappe / fil | Innhold |
 |-------------|---------|
-| `website/` | Statisk nettside (`index.html`, `app.js`, `styles.css`) |
+| `website/` | Statisk nettside (`index.html`, `app.js`, `activityfinder-ui.css`) |
 | `vercel.json` | Deploy av **website/** til Vercel (ikke Vite-appen i rot) |
 | `scripts/vercel-website-config.js` | Lager `website/config.js` på Vercel fra miljøvariabler |
 | `supabase/` | SQL og dokumentasjon for database |

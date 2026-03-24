@@ -1,10 +1,14 @@
 <!doctype html>
-<html lang="no">
+<html lang="no" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- AF: stilark = activityfinder-ui.css (bytt filnavn ved store CSS-endringer for å omgå 304-cache). -->
+    <meta name="af-asset-build" content="ui-20260324-themefix" />
+    <meta http-equiv="Cache-Control" content="max-age=0, must-revalidate, no-cache" />
     <title>ActivityFinder – Utforsk aktiviteter nær deg</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./activityfinder-ui.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   </head>
   <body>
@@ -130,6 +134,13 @@
           <div id="af-profile-content" class="af-profile-content" style="display:none;">
             <p><strong>Navn:</strong> <span id="af-profile-name">—</span></p>
             <p><strong>E-post:</strong> <span id="af-profile-email">—</span></p>
+            <div class="af-theme-row" id="af-theme-row">
+              <span class="af-theme-label">Utseende</span>
+              <div class="af-theme-toggle">
+                <button type="button" class="af-button secondary af-theme-btn" id="af-theme-dark" aria-pressed="true">Mørk</button>
+                <button type="button" class="af-button secondary af-theme-btn" id="af-theme-light" aria-pressed="false">Lys</button>
+              </div>
+            </div>
             <button type="button" class="af-button secondary" id="af-logout-btn">Logg ut</button>
           </div>
         </section>
@@ -283,6 +294,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
     <script>window.createClient = window.supabase.createClient;</script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="./supabase-runtime.js"></script>
     <script src="./config.js"></script>
     <script src="./app.js"></script>
   </body>

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "serve:web": "npx --yes serve website --no-etag",
+    "serve:root": "npx --yes serve . --no-etag"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",
