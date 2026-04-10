@@ -233,6 +233,8 @@ html:not([data-theme="light"]) .af-section-header h2 {
 /* Horisontal bane med «peek» av forrige/neste (som i story-karuseller) */
 .af-weekly-viewport {
   --af-weekly-gap: 10px;
+  /* Felles min-høyde slik at alle kort (også uten bilde / kort tekst) fyller samme «ramme». */
+  --af-weekly-slide-min-h: 320px;
   position: relative;
   width: 100%;
   overflow: hidden;
@@ -307,6 +309,7 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
   flex-direction: row;
   align-items: stretch;
   gap: var(--af-weekly-gap);
+  min-height: var(--af-weekly-slide-min-h);
   will-change: transform;
   transition: transform 0.42s cubic-bezier(0.25, 0.88, 0.35, 1);
 }
@@ -314,20 +317,20 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
 .af-weekly-slide {
   flex: 0 0 calc(100% - 52px);
   min-width: 0;
+  min-height: var(--af-weekly-slide-min-h);
   display: flex;
   flex-direction: column;
   align-self: stretch;
   cursor: pointer;
-  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+  /* Ikke bruk scale på inaktive – da ser kortet «for lite» ut mot viewport-kanten. */
+  transition: opacity 0.35s ease, filter 0.35s ease;
   opacity: 0.52;
   filter: saturate(0.75) brightness(0.92);
-  transform: scale(0.98);
 }
 
 .af-weekly-slide.is-active {
   opacity: 1;
   filter: none;
-  transform: scale(1);
 }
 
 .af-weekly-viewport--single .af-weekly-slide {
@@ -341,12 +344,30 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 240px;
+  min-height: var(--af-weekly-slide-min-h);
+  height: 100%;
   background: radial-gradient(circle at top, rgba(52, 211, 153, 0.2), rgba(13, 26, 14, 0.9));
   border-radius: 18px;
   padding: 14px 14px 16px;
   border: 2px solid rgba(52, 211, 153, 0.25);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+/* Samme vertikale plass som bilde + margin, slik at kort uten foto ikke blir «korte». */
+.af-weekly-slide:not(:has(.af-weekly-img))::before {
+  content: '';
+  flex-shrink: 0;
+  width: 100%;
+  height: 100px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: rgba(15, 40, 20, 0.35);
+  border: 1px solid rgba(52, 211, 153, 0.12);
+}
+
+html[data-theme="light"] .af-weekly-slide:not(:has(.af-weekly-img))::before {
+  background: rgba(209, 250, 229, 0.45);
+  border-color: rgba(74, 222, 128, 0.35);
 }
 
 .af-weekly-card h3 {
@@ -359,7 +380,7 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
 .af-weekly-card p {
   margin: 0;
   flex: 1 1 auto;
-  min-height: 4.5em;
+  min-height: 7em;
   color: var(--af-text-muted);
   font-size: 0.9rem;
   line-height: 1.45;
