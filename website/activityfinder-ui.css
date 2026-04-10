@@ -305,6 +305,7 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
 .af-weekly-track {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
   gap: var(--af-weekly-gap);
   will-change: transform;
   transition: transform 0.42s cubic-bezier(0.25, 0.88, 0.35, 1);
@@ -313,6 +314,9 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
 .af-weekly-slide {
   flex: 0 0 calc(100% - 52px);
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
   cursor: pointer;
   transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
   opacity: 0.52;
@@ -334,24 +338,31 @@ html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::a
 }
 
 .af-weekly-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
   background: radial-gradient(circle at top, rgba(52, 211, 153, 0.2), rgba(13, 26, 14, 0.9));
   border-radius: 18px;
   padding: 14px 14px 16px;
   border: 2px solid rgba(52, 211, 153, 0.25);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.08);
-  min-height: 110px;
-  height: 100%;
 }
 
 .af-weekly-card h3 {
   margin: 0 0 4px;
   font-size: 1rem;
+  line-height: 1.25;
+  flex-shrink: 0;
 }
 
 .af-weekly-card p {
   margin: 0;
+  flex: 1 1 auto;
+  min-height: 4.5em;
   color: var(--af-text-muted);
   font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .af-filters {
@@ -629,7 +640,15 @@ body.af-map-expanded #af-map.af-map-view {
 
 .af-empty { color: var(--af-text-muted); font-size: 0.9rem; margin: 0; padding: 12px 0; }
 
-.af-weekly-img, .af-activity-img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
+.af-weekly-img {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.af-activity-img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
 .af-activity-category { display: inline-block; font-size: 0.75rem; color: var(--af-accent); margin-bottom: 4px; }
 /* "Gå til nettside" – klikkbare bare på teksten, ikke stor usynlig boks */
 .af-card-link {
