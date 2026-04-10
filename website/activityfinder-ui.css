@@ -1010,6 +1010,51 @@ html[data-theme="light"] .af-activity-card {
     0 4px 18px rgba(52, 211, 153, 0.12);
 }
 
+/* Lys «frost» over bilde: mørk modus uendret; her lesbar sort tekst + synlig foto til høyre */
+html[data-theme="light"] .af-activity-card-overlay {
+  background:
+    linear-gradient(to bottom, transparent 0%, transparent 38%, rgba(240, 253, 244, 0.42) 72%, rgba(248, 250, 252, 0.88) 100%),
+    linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(240, 253, 244, 0.88) 26%,
+      rgba(255, 255, 255, 0.48) 54%,
+      rgba(255, 255, 255, 0.14) 78%,
+      transparent 100%
+    );
+}
+
+html[data-theme="light"] .af-activity-card h3,
+html[data-theme="light"] .af-activity-card .af-activity-card-title {
+  color: #0f172a;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.98),
+    0 1px 14px rgba(255, 255, 255, 0.85);
+}
+
+html[data-theme="light"] .af-activity-card p,
+html[data-theme="light"] .af-activity-card .af-activity-card-desc {
+  color: rgba(15, 23, 42, 0.9);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 1px 12px rgba(255, 255, 255, 0.75);
+}
+
+html[data-theme="light"] .af-activity-card-time,
+html[data-theme="light"] .af-activity-card-price {
+  color: #047857;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.92),
+    0 1px 10px rgba(255, 255, 255, 0.65);
+}
+
+html[data-theme="light"] .af-activity-card .af-card-link {
+  color: #047857;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 8px rgba(255, 255, 255, 0.55);
+}
+
 html[data-theme="light"] .af-profile-login-intro {
   color: #1d5240;
 }
