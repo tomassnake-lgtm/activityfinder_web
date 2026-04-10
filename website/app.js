@@ -17,8 +17,12 @@
   var weeklyResizeTimer = null;
   var weeklyDragging = false;
   var weeklyDragStartX = 0;
+  var weeklyDragStartY = 0;
   var weeklyDragCurrentX = 0;
-  var weeklyActivePointerId = null;
+  var weeklyTouchIntent = null;
+  var weeklyTouchId = null;
+  var weeklyMouseActive = false;
+  var weeklySuppressClick = false;
   var weeklyGlobalResizeBound = false;
 
   var THEMES = ['snø', 'vann', 'skog', 'ball', 'sosial', 'familie', 'foreldrepermisjon'];
@@ -446,49 +450,44 @@
   function buildWeeklySlideElement(a) {
     var article = document.createElement('article');
     article.className = 'af-weekly-slide af-weekly-card';
-    var img = (a.custom_photo_url && '<img src="' + escapeAttr(a.custom_photo_url) + '" alt="" class="af-weekly-img" />') || '';
+    var img = (a.custom_photo_url && '<img src="' + escapeAttr(a.custom_photo_url) + '" alt="" class="af-weekly-img" draggable="false" />') || '';
     var desc = (a.short_description && a.short_description.trim()) ? a.short_description.trim() : (a.description || '');
     var short = (desc || '').slice(0, 120);
     article.innerHTML =
       img +
       '<h3>' + escapeHtml(a.name || '') + '</h3>' +
       '<p>' + escapeHtml(short) + ((desc || '').length > 120 ? '…' : '') + '</p>';
-    article.addEventListener('click', function () {
+    article.addEventListener('click', function (ev) {
+      if (weeklySuppressClick) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        return;
+      }
       showActivityModal(a);
     });
     return article;
   }
 
+  /**
+   * Karusell: bruk native touch på mobil (iOS Safari håndterer ofte touch bedre enn Pointer Events
+   * når peek/sideslip er synlig). Mus bruker egen document-bound kjeden.
+   * Pointer Events + touch gir dobbel-fyring på iPhone — ikke bruk pointer her.
+   */
   function bindWeeklyViewportInteractions(viewport) {
-    function onPointerDown(e) {
-      if (e.button !== undefined && e.button !== 0) return;
-      if (weeklyActivitiesCached.length <= 1) return;
-      weeklyDragging = true;
-      weeklyDragStartX = e.clientX;
-      weeklyDragCurrentX = 0;
-      weeklyActivePointerId = e.pointerId;
-      try {
-        viewport.setPointerCapture(e.pointerId);
-      } catch (err) {}
-      stopWeeklyRotation();
-      updateWeeklyTrackTransform(false, 0);
+    var INTENT_THRESHOLD = 22;
+    var SNAP_THRESHOLD = 56;
+    var CLICK_SUPPRESS_PX = 14;
+
+    function suppressModalClickAfterDrag() {
+      weeklySuppressClick = true;
+      window.setTimeout(function () {
+        weeklySuppressClick = false;
+      }, 380);
     }
 
-    function onPointerMove(e) {
-      if (!weeklyDragging || weeklyActivePointerId !== e.pointerId) return;
-      weeklyDragCurrentX = e.clientX - weeklyDragStartX;
-      updateWeeklyTrackTransform(false, weeklyDragCurrentX);
-    }
-
-    function endDrag(e) {
-      if (!weeklyDragging) return;
-      if (weeklyActivePointerId !== null && e.pointerId !== weeklyActivePointerId) return;
-      weeklyDragging = false;
-      var dx = weeklyDragCurrentX;
-      weeklyDragCurrentX = 0;
-      weeklyActivePointerId = null;
-      var threshold = 56;
-      if (Math.abs(dx) > threshold) {
+    function finishWeeklySwipe(dx) {
+      if (Math.abs(dx) > CLICK_SUPPRESS_PX) suppressModalClickAfterDrag();
+      if (Math.abs(dx) > SNAP_THRESHOLD) {
         if (dx < 0) weeklyGoNext();
         else weeklyGoPrev();
       } else {
@@ -496,15 +495,124 @@
       }
       setWeeklySlideActiveClasses();
       startWeeklyRotation();
-      try {
-        viewport.releasePointerCapture(e.pointerId);
-      } catch (err2) {}
     }
 
-    viewport.addEventListener('pointerdown', onPointerDown);
-    viewport.addEventListener('pointermove', onPointerMove);
-    viewport.addEventListener('pointerup', endDrag);
-    viewport.addEventListener('pointercancel', endDrag);
+    function onTouchStart(e) {
+      if (weeklyActivitiesCached.length <= 1) return;
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0];
+      weeklyDragging = true;
+      weeklyTouchIntent = null;
+      weeklyDragStartX = t.clientX;
+      weeklyDragStartY = t.clientY;
+      weeklyDragCurrentX = 0;
+      weeklyTouchId = t.identifier;
+      stopWeeklyRotation();
+      updateWeeklyTrackTransform(false, 0);
+    }
+
+    function onTouchMove(e) {
+      if (!weeklyDragging || weeklyTouchId === null) return;
+      var t = null;
+      for (var i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].identifier === weeklyTouchId) {
+          t = e.touches[i];
+          break;
+        }
+      }
+      if (!t) return;
+      var dx = t.clientX - weeklyDragStartX;
+      var dy = t.clientY - weeklyDragStartY;
+      if (weeklyTouchIntent === null) {
+        if (dx * dx + dy * dy < INTENT_THRESHOLD * INTENT_THRESHOLD) return;
+        weeklyTouchIntent = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+        if (weeklyTouchIntent === 'v') {
+          weeklyDragging = false;
+          weeklyTouchIntent = null;
+          weeklyTouchId = null;
+          weeklyDragCurrentX = 0;
+          startWeeklyRotation();
+          return;
+        }
+      }
+      if (weeklyTouchIntent !== 'h') return;
+      try {
+        e.preventDefault();
+      } catch (errP) {}
+      weeklyDragCurrentX = dx;
+      updateWeeklyTrackTransform(false, weeklyDragCurrentX);
+    }
+
+    function onTouchEnd(e) {
+      var t = null;
+      for (var j = 0; j < e.changedTouches.length; j++) {
+        if (e.changedTouches[j].identifier === weeklyTouchId) {
+          t = e.changedTouches[j];
+          break;
+        }
+      }
+      if (!t) return;
+
+      var intent = weeklyTouchIntent;
+      var wasDragging = weeklyDragging;
+      weeklyTouchId = null;
+      weeklyTouchIntent = null;
+
+      if (!wasDragging) {
+        startWeeklyRotation();
+        return;
+      }
+
+      weeklyDragging = false;
+      weeklyDragCurrentX = 0;
+
+      if (intent === null) {
+        updateWeeklyTrackTransform(true, 0);
+        setWeeklySlideActiveClasses();
+        startWeeklyRotation();
+        return;
+      }
+
+      var dx = t.clientX - weeklyDragStartX;
+      finishWeeklySwipe(dx);
+    }
+
+    function onMouseDown(e) {
+      if (e.button !== 0) return;
+      if (weeklyActivitiesCached.length <= 1) return;
+      weeklyMouseActive = true;
+      weeklyDragging = true;
+      weeklyDragStartX = e.clientX;
+      weeklyDragCurrentX = 0;
+      stopWeeklyRotation();
+      updateWeeklyTrackTransform(false, 0);
+
+      function onMouseMove(ev) {
+        if (!weeklyMouseActive) return;
+        weeklyDragCurrentX = ev.clientX - weeklyDragStartX;
+        updateWeeklyTrackTransform(false, weeklyDragCurrentX);
+      }
+
+      function onMouseUp(ev) {
+        if (!weeklyMouseActive) return;
+        weeklyMouseActive = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        weeklyDragging = false;
+        var dx = ev.clientX - weeklyDragStartX;
+        weeklyDragCurrentX = 0;
+        finishWeeklySwipe(dx);
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    viewport.addEventListener('touchstart', onTouchStart, { passive: true });
+    viewport.addEventListener('touchmove', onTouchMove, { passive: false });
+    viewport.addEventListener('touchend', onTouchEnd, { passive: true });
+    viewport.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    viewport.addEventListener('mousedown', onMouseDown);
   }
 
   function startWeeklyRotation() {

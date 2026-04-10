@@ -237,9 +237,18 @@ html:not([data-theme="light"]) .af-section-header h2 {
   width: 100%;
   overflow: hidden;
   border-radius: 20px;
-  touch-action: pan-x;
+  /* pan-x reserverer horisontal scroll for nettleseren uten ekte scrollbane → sveip virker ofte ikke på mobil.
+     pan-y lar vertikal sidescroll gå til body; horisontal håndteres av JS (pointer). */
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.af-weekly-viewport .af-weekly-track,
+.af-weekly-viewport .af-weekly-slide,
+.af-weekly-viewport .af-weekly-img {
+  touch-action: inherit;
 }
 
 /* Lett vignett i kantene – hint om mer innhold å sveipe til */
