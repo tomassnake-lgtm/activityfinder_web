@@ -11,7 +11,12 @@
   var THEME_KEY = 'af_color_theme';
   var weeklyTimerId = null;
   var weeklyIndex = 0;
-  var WEEKLY_ROTATE_MS = 5000;
+  var WEEKLY_ROTATE_MS = 6000;
+  var weeklySwipeBound = false;
+  var weeklyPointerId = null;
+  var weeklyStartX = 0;
+  var weeklyActive = false;
+  var weeklyLastDirection = 'next';
 
   var THEMES = ['snø', 'vann', 'skog', 'ball', 'sosial', 'familie', 'foreldrepermisjon'];
   var currentFilter = null;
@@ -379,11 +384,15 @@
     }
   }
 
-  function renderWeeklySlide(container, activities, idx) {
+  function renderWeeklySlide(container, activities, idx, direction) {
     var a = activities[idx];
     container.innerHTML = '';
     var card = document.createElement('article');
-    card.className = 'af-weekly-card af-weekly-card-single';
+    var dir = direction === 'prev' ? 'prev' : 'next';
+    weeklyLastDirection = dir;
+    card.className =
+      'af-weekly-card af-weekly-card-single ' +
+      (dir === 'prev' ? 'af-weekly-from-left' : 'af-weekly-from-right');
     var img = (a.custom_photo_url && '<img src="' + escapeAttr(a.custom_photo_url) + '" alt="" class="af-weekly-img" />') || '';
     var desc = (a.short_description && a.short_description.trim()) ? a.short_description.trim() : (a.description || '');
     var short = (desc || '').slice(0, 120);
@@ -401,6 +410,65 @@
     });
   }
 
+  function bindWeeklySwipe(container, activities) {
+    if (weeklySwipeBound) return;
+    weeklySwipeBound = true;
+
+    function next() {
+      if (!activities.length) return;
+      stopWeeklyRotation();
+      weeklyIndex = (weeklyIndex + 1) % activities.length;
+      renderWeeklySlide(container, activities, weeklyIndex, 'next');
+      startWeeklyRotation(container, activities);
+    }
+
+    function prev() {
+      if (!activities.length) return;
+      stopWeeklyRotation();
+      weeklyIndex = (weeklyIndex - 1 + activities.length) % activities.length;
+      renderWeeklySlide(container, activities, weeklyIndex, 'prev');
+      startWeeklyRotation(container, activities);
+    }
+
+    container.addEventListener('pointerdown', function (e) {
+      if (!activities.length) return;
+      weeklyActive = true;
+      weeklyPointerId = e.pointerId;
+      weeklyStartX = e.clientX;
+      try { container.setPointerCapture(weeklyPointerId); } catch (err) {}
+      stopWeeklyRotation();
+    });
+
+    container.addEventListener('pointerup', function (e) {
+      if (!weeklyActive) return;
+      if (weeklyPointerId !== null && e.pointerId !== weeklyPointerId) return;
+      weeklyActive = false;
+      var dx = e.clientX - weeklyStartX;
+      weeklyPointerId = null;
+      if (Math.abs(dx) < 40) {
+        startWeeklyRotation(container, activities);
+        return;
+      }
+      if (dx < 0) next();
+      else prev();
+    });
+
+    container.addEventListener('pointercancel', function () {
+      weeklyActive = false;
+      weeklyPointerId = null;
+      startWeeklyRotation(container, activities);
+    });
+  }
+
+  function startWeeklyRotation(container, activities) {
+    stopWeeklyRotation();
+    if (activities.length <= 1) return;
+    weeklyTimerId = setInterval(function () {
+      weeklyIndex = (weeklyIndex + 1) % activities.length;
+      renderWeeklySlide(container, activities, weeklyIndex, 'next');
+    }, WEEKLY_ROTATE_MS);
+  }
+
   function renderWeeklyCarousel(activities) {
     var container = document.getElementById('af-weekly-carousel');
     if (!container) return;
@@ -413,13 +481,10 @@
     }
 
     weeklyIndex = 0;
-    renderWeeklySlide(container, activities, weeklyIndex);
+    renderWeeklySlide(container, activities, weeklyIndex, 'next');
 
-    if (activities.length <= 1) return;
-    weeklyTimerId = setInterval(function () {
-      weeklyIndex = (weeklyIndex + 1) % activities.length;
-      renderWeeklySlide(container, activities, weeklyIndex);
-    }, WEEKLY_ROTATE_MS);
+    bindWeeklySwipe(container, activities);
+    startWeeklyRotation(container, activities);
   }
 
   function renderActivityList(activities) {

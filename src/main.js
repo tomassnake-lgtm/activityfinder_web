@@ -26,6 +26,9 @@ import { getUserType, canCreateActivities, isAdmin } from './services/userServic
 import { supabase } from './lib/supabaseClient.js'
 import { checkBadges, saveBadgesToSupabase, loadBadgesFromSupabase, BADGES } from './services/badgeService.js'
 import { getActivityLeaderRating, renderStars } from './services/ratingService.js'
+import { inject as injectVercelAnalytics } from '@vercel/analytics'
+
+injectVercelAnalytics()
 
 document.addEventListener('DOMContentLoaded', () => {
 	bootstrap()

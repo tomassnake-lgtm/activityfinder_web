@@ -46,9 +46,12 @@ img {
   top: 0;
   z-index: 20;
   backdrop-filter: blur(16px);
-  background: linear-gradient(to bottom, rgba(13, 26, 14, 0.94), rgba(13, 26, 14, 0.7), transparent);
-  border-bottom: 2px solid var(--af-border-light);
-  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(ellipse 90% 120% at 12% 0%, rgba(52, 211, 153, 0.16) 0%, transparent 52%),
+    radial-gradient(ellipse 70% 100% at 92% 30%, rgba(34, 197, 94, 0.12) 0%, transparent 48%),
+    linear-gradient(to bottom, rgba(5, 26, 8, 0.92), rgba(5, 26, 8, 0.78) 55%, rgba(5, 26, 8, 0.55));
+  border-bottom: 2px solid rgba(52, 211, 153, 0.22);
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.06);
 }
 
 .af-header-inner {
@@ -86,7 +89,7 @@ img {
 }
 
 .af-nav a:hover {
-  background: rgba(13, 26, 14, 0.9);
+  background: rgba(52, 211, 153, 0.12);
   color: var(--af-text);
 }
 
@@ -97,9 +100,7 @@ main {
 }
 
 .af-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 32px;
+  display: block;
   margin-bottom: 40px;
 }
 
@@ -170,20 +171,30 @@ main {
   margin-bottom: 32px;
   padding: 20px 18px 22px;
   border-radius: 24px;
-  background: radial-gradient(circle at top left, rgba(13, 26, 14, 0.95), #051a06);
-  border: 2px solid rgba(52, 211, 153, 0.15);
+  background: radial-gradient(circle at top left, rgba(52, 211, 153, 0.18), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.22), transparent 55%),
+    linear-gradient(135deg, #051a06, #051a06);
+  border: 2px solid rgba(52, 211, 153, 0.25);
   box-shadow: var(--af-shadow-card);
 }
 
 .af-section-header h2 {
   margin: 0 0 4px;
   font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+html:not([data-theme="light"]) .af-section-header h2 {
+  color: #f0fdf4;
 }
 
 .af-section-header p {
   margin: 0;
   color: var(--af-text-muted);
   font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 40rem;
 }
 
 .af-weekly-carousel {
@@ -191,6 +202,7 @@ main {
   display: block;
   overflow: hidden;
   padding-bottom: 4px;
+  touch-action: pan-y;
 }
 
 .af-weekly-card {
@@ -206,13 +218,23 @@ main {
   width: 100%;
   cursor: pointer;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 280ms ease, transform 280ms ease;
+  --af-weekly-x: 24px;
+  transform: translateX(var(--af-weekly-x));
+  transition: opacity 420ms cubic-bezier(0.2, 0.9, 0.2, 1), transform 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.af-weekly-card-single.af-weekly-from-left {
+  --af-weekly-x: -24px;
+}
+
+.af-weekly-card-single.af-weekly-from-right {
+  --af-weekly-x: 24px;
 }
 
 .af-weekly-card-single.af-weekly-in {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 .af-weekly-card h3 {
@@ -396,10 +418,13 @@ body.af-map-expanded #af-map.af-map-view {
 }
 
 .af-footer {
-  border-top: 2px solid var(--af-border-light);
+  border-top: 2px solid rgba(52, 211, 153, 0.2);
   padding: 14px 20px 18px;
-  background: radial-gradient(circle at top, #051a06, #000);
-  box-shadow: 0 -2px 0 rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(52, 211, 153, 0.12) 0%, transparent 55%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.1) 0%, transparent 45%),
+    linear-gradient(180deg, #051a06 0%, #020804 100%);
+  box-shadow: 0 -2px 0 rgba(255, 255, 255, 0.06);
 }
 
 .af-footer-inner {
@@ -798,57 +823,50 @@ html[data-theme="light"] .af-hero-content p {
   color: #1d5240;
 }
 
+/* Samme «hero»-palett på alle hovedseksjoner (lys modus) */
 html[data-theme="light"] .af-section {
   background:
-    radial-gradient(circle at 0% 0%, rgba(52, 211, 153, 0.28) 0%, transparent 48%),
-    radial-gradient(circle at 100% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 42%),
-    linear-gradient(165deg, #ecfdf5 0%, #d1fae5 42%, #bbf7d0 100%);
-  border: 1px solid rgba(10, 122, 82, 0.24);
+    radial-gradient(circle at 12% 8%, rgba(52, 211, 153, 0.38) 0%, transparent 42%),
+    radial-gradient(circle at 88% 92%, rgba(16, 185, 129, 0.3) 0%, transparent 45%),
+    linear-gradient(145deg, #ecfdf5 0%, #bbf7d0 38%, #86efac 100%);
+  border: 1px solid rgba(10, 122, 82, 0.26);
   box-shadow: var(--af-shadow-card);
 }
 
-/* Myke, lyse grønne «bokser» – ukens aktiviteter, filter, liste, kart */
+html[data-theme="light"] .af-section-header h2 {
+  color: #0a3d28;
+}
+
+html[data-theme="light"] .af-section-header p {
+  color: #1d5240;
+}
+
+/* Lett variasjon per blokk – samme base som hero, ekstra høylys */
 html[data-theme="light"] .af-section.af-weekly {
-  background:
-    radial-gradient(ellipse 90% 70% at 20% 0%, rgba(134, 239, 172, 0.65) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(110, 231, 183, 0.5) 0%, transparent 50%),
-    linear-gradient(180deg, #f0fdf4 0%, #d1fae5 40%, #bbf7d0 100%);
-  border: 1px solid rgba(74, 222, 128, 0.42);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 6px 28px rgba(16, 185, 129, 0.12),
-    0 0 0 1px rgba(220, 252, 231, 0.95);
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 6px 28px rgba(16, 185, 129, 0.1),
+    var(--af-shadow-card);
 }
 
 html[data-theme="light"] .af-section.af-filters {
-  background:
-    radial-gradient(ellipse 85% 60% at 50% 0%, rgba(110, 231, 183, 0.55) 0%, transparent 52%),
-    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 45%, #bbf7d0 100%);
-  border: 1px solid rgba(74, 222, 128, 0.4);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 4px 24px rgba(52, 211, 153, 0.12);
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    var(--af-shadow-card);
 }
 
 html[data-theme="light"] .af-section.af-activities {
-  background:
-    radial-gradient(ellipse 80% 55% at 0% 30%, rgba(167, 243, 208, 0.65) 0%, transparent 52%),
-    radial-gradient(ellipse 60% 45% at 95% 80%, rgba(134, 239, 172, 0.5) 0%, transparent 48%),
-    linear-gradient(175deg, #f0fdf4 0%, #d1fae5 38%, #a7f3d0 100%);
-  border: 1px solid rgba(74, 222, 128, 0.38);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.82) inset,
-    0 8px 32px rgba(52, 211, 153, 0.1);
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 8px 28px rgba(52, 211, 153, 0.08),
+    var(--af-shadow-card);
 }
 
 html[data-theme="light"] .af-section.af-map {
-  background:
-    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(110, 231, 183, 0.55) 0%, transparent 58%),
-    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 50%, #bbf7d0 100%);
-  border: 1px solid rgba(74, 222, 128, 0.4);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 6px 30px rgba(16, 185, 129, 0.11);
+    0 6px 26px rgba(16, 185, 129, 0.09),
+    var(--af-shadow-card);
 }
 
 html[data-theme="light"] .af-button.primary {
@@ -872,9 +890,12 @@ html[data-theme="light"] .af-button.secondary:hover {
 }
 
 html[data-theme="light"] .af-modal {
-  border: 1px solid var(--af-border-soft);
+  border: 1px solid rgba(10, 122, 82, 0.26);
   box-shadow: var(--af-shadow-modal);
-  background: linear-gradient(180deg, #f0fdf4 0%, #d8f0e3 100%);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(52, 211, 153, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 95% 100%, rgba(16, 185, 129, 0.18) 0%, transparent 42%),
+    linear-gradient(145deg, #ecfdf5 0%, #d1fae5 55%, #bbf7d0 100%);
 }
 
 html[data-theme="light"] .af-modal-close {
@@ -899,9 +920,12 @@ html[data-theme="light"] .af-footer {
 }
 
 html[data-theme="light"] .af-consent-modal {
-  border: 1px solid var(--af-border-soft);
+  border: 1px solid rgba(10, 122, 82, 0.26);
   box-shadow: var(--af-shadow-modal);
-  background: linear-gradient(180deg, #fbfcfb 0%, #f2f6f3 100%);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(52, 211, 153, 0.3) 0%, transparent 42%),
+    radial-gradient(circle at 88% 92%, rgba(16, 185, 129, 0.22) 0%, transparent 45%),
+    linear-gradient(145deg, #ecfdf5 0%, #bbf7d0 38%, #86efac 100%);
 }
 
 html[data-theme="light"] .af-consent-overlay {
@@ -984,6 +1008,10 @@ html[data-theme="light"] .af-activity-card {
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.78) inset,
     0 4px 18px rgba(52, 211, 153, 0.12);
+}
+
+html[data-theme="light"] .af-profile-login-intro {
+  color: #1d5240;
 }
 
 html[data-theme="light"] .af-profile-login input[type="email"],
