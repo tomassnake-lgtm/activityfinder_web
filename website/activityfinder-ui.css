@@ -24,11 +24,18 @@ html:not([data-theme="light"]) {
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   background: radial-gradient(circle at top, #0d1a0e 0, #051a06 45%, #000 100%);
   color: var(--af-text);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 a {
@@ -45,6 +52,10 @@ img {
   position: sticky;
   top: 0;
   z-index: 20;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow: hidden;
   backdrop-filter: blur(16px);
   background:
     radial-gradient(ellipse 90% 120% at 12% 0%, rgba(52, 211, 153, 0.16) 0%, transparent 52%),
@@ -56,11 +67,16 @@ img {
 
 .af-header-inner {
   max-width: 1120px;
+  width: 100%;
   margin: 0 auto;
-  padding: 14px 20px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .af-logo {
@@ -77,8 +93,12 @@ img {
 
 .af-nav {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   font-size: 0.92rem;
+  justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .af-nav a {
@@ -95,8 +115,11 @@ img {
 
 main {
   max-width: 1120px;
+  width: 100%;
   margin: 0 auto;
-  padding: 32px 20px 40px;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .af-hero {
@@ -168,6 +191,8 @@ main {
 }
 
 .af-section {
+  max-width: 100%;
+  min-width: 0;
   margin-bottom: 32px;
   padding: 20px 18px 22px;
   border-radius: 24px;
@@ -377,9 +402,14 @@ html:not([data-theme="light"]) .af-section-header h2 {
 
 #af-map.af-map-view {
   width: 100%;
+  max-width: 100%;
   min-height: 320px;
   height: 320px;
   border-radius: 22px;
+}
+
+.leaflet-container {
+  max-width: 100%;
 }
 
 /* Kart – forstørret visning */
@@ -501,8 +531,20 @@ body.af-map-expanded #af-map.af-map-view {
   flex-wrap: wrap;
 }
 
-.af-page { display: none; }
+.af-page { display: none; width: 100%; max-width: 100%; min-width: 0; }
 .af-page.af-visible { display: block; }
+
+.af-activities-more-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 8px 0 4px;
+}
+
+.af-activities-more-btn {
+  min-width: 140px;
+}
 
 .af-empty { color: var(--af-text-muted); font-size: 0.9rem; margin: 0; padding: 12px 0; }
 
@@ -550,17 +592,32 @@ body.af-map-expanded #af-map.af-map-view {
   position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center;
   z-index: 100; padding: 20px; opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 .af-modal-overlay.af-visible { opacity: 1; visibility: visible; }
 .af-modal-overlay.af-visible .af-modal { transform: scale(1); opacity: 1; }
 .af-modal {
   background: var(--af-surface); border: 2px solid rgba(52, 211, 153, 0.25); border-radius: var(--af-radius-lg);
-  padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow: hidden; position: relative;
+  padding: 24px;
+  width: 100%;
+  max-width: min(480px, calc(100vw - 32px));
+  max-height: 90vh; overflow: hidden; position: relative;
   box-shadow: var(--af-shadow-modal);
   transform: scale(0.95); opacity: 0; transition: transform 0.25s ease, opacity 0.25s ease;
+  margin: auto;
+  box-sizing: border-box;
 }
-.af-modal-activity .af-modal-activity-content { max-height: 75vh; overflow-y: auto; padding-right: 8px; }
+.af-modal-activity .af-modal-activity-content {
+  max-height: 75vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
 .af-modal-activity-title { margin: 0 0 4px; font-size: 1.25rem; }
 .af-modal-meta { margin: 0 0 12px; font-size: 0.85rem; color: var(--af-accent); }
 .af-modal h3 { margin: 0 0 16px; }
@@ -572,7 +629,16 @@ body.af-map-expanded #af-map.af-map-view {
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 .af-modal-close:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
-.af-modal-img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
+.af-modal-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: min(220px, 42vh);
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
 .af-modal-desc { margin: 0 0 12px; color: var(--af-text-muted); font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; }
 .af-modal-loc { margin: 0 0 14px; font-size: 0.9rem; color: var(--af-text-muted); }
 .af-modal-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
@@ -636,17 +702,46 @@ body.af-map-expanded #af-map.af-map-view {
 
 @media (max-width: 768px) {
   .af-header-inner {
-    gap: 12px;
+    gap: 10px;
+    padding: 12px 12px;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .af-nav {
-    font-size: 0.8rem;
-    gap: 8px;
+    font-size: 0.78rem;
+    gap: 6px 8px;
+    justify-content: flex-start;
+  }
+
+  .af-nav a {
+    padding: 6px 8px;
   }
 
   /* On small screens: show one activity per row */
   .af-activities-list {
     grid-template-columns: 1fr;
+  }
+
+  .af-modal-overlay {
+    align-items: flex-start;
+    padding: max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px))
+      max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
+  }
+
+  .af-modal {
+    padding: 16px 14px 18px;
+    max-width: calc(100vw - 20px);
+    max-height: min(90vh, 100dvh - 24px);
+  }
+
+  .af-modal-activity .af-modal-activity-content {
+    max-height: min(70vh, calc(100dvh - 140px));
+  }
+
+  .af-modal-close {
+    top: 8px;
+    right: 8px;
   }
 }
 
@@ -1119,6 +1214,7 @@ html[data-theme="light"] body {
     radial-gradient(ellipse 80% 60% at 100% 30%, rgba(5, 150, 105, 0.24) 0%, transparent 45%),
     linear-gradient(180deg, #d1fae5 0%, #b8e8cc 35%, #9dd9b8 100%) !important;
   color: var(--af-text) !important;
+  overflow-x: hidden !important;
 }
 
 html[data-theme="light"] .af-nav a {

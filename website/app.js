@@ -22,6 +22,22 @@
   var currentFilter = null;
   var searchQuery = '';
   var activeQuickFilters = new Set();
+  /** «Alle aktiviteter»: begrens antall til Vis mer (kun liste, ikke kart) */
+  var afActivitiesListExpanded = false;
+  var LIST_CAP_MOBILE = 5;
+  var LIST_CAP_DESKTOP = 14;
+
+  function resetActivityListPagination() {
+    afActivitiesListExpanded = false;
+  }
+
+  function getActivityListCap() {
+    try {
+      return window.matchMedia('(max-width: 768px)').matches ? LIST_CAP_MOBILE : LIST_CAP_DESKTOP;
+    } catch (e) {
+      return LIST_CAP_DESKTOP;
+    }
+  }
 
   function getSupabase() {
     if (supabase) return supabase;
@@ -565,7 +581,12 @@
       container.innerHTML = '<p class="af-empty">Ingen aktiviteter matcher søket.</p>';
       return;
     }
-    filtered.forEach(function (a) {
+
+    var cap = getActivityListCap();
+    var showMore = !afActivitiesListExpanded && filtered.length > cap;
+    var toRender = showMore ? filtered.slice(0, cap) : filtered;
+
+    toRender.forEach(function (a) {
       var card = document.createElement('article');
       card.className = 'af-activity-card';
       var timePlace = formatTimePlace(a);
@@ -586,12 +607,38 @@
       });
       container.appendChild(card);
     });
+
+    if (showMore) {
+      var wrap = document.createElement('div');
+      wrap.className = 'af-activities-more-wrap';
+      var moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'af-button secondary af-activities-more-btn';
+      moreBtn.textContent = 'Vis mer';
+      moreBtn.addEventListener('click', function () {
+        afActivitiesListExpanded = true;
+        renderActivityList(activities);
+      });
+      wrap.appendChild(moreBtn);
+      container.appendChild(wrap);
+    }
   }
 
   function renderFilterChips() {
     var container = document.getElementById('af-filter-chips');
     if (!container) return;
     container.innerHTML = '<button type="button" class="af-chip af-chip-active" data-filter="">Alle</button>';
+    var alleChip = container.firstElementChild;
+    if (alleChip) {
+      alleChip.addEventListener('click', function () {
+        currentFilter = null;
+        container.querySelectorAll('.af-chip').forEach(function (c) {
+          c.classList.toggle('af-chip-active', (c.dataset.filter || '') === '');
+        });
+        resetActivityListPagination();
+        if (window.afAllActivities) renderActivityList(window.afAllActivities);
+      });
+    }
     THEMES.forEach(function (t) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -603,6 +650,7 @@
         container.querySelectorAll('.af-chip').forEach(function (c) {
           c.classList.toggle('af-chip-active', (c.dataset.filter || '') === (currentFilter || ''));
         });
+        resetActivityListPagination();
         if (window.afAllActivities) renderActivityList(window.afAllActivities);
       });
       container.appendChild(btn);
@@ -988,6 +1036,7 @@
     if (searchInput) {
       searchInput.addEventListener('input', function (e) {
         searchQuery = e.target.value.trim();
+        resetActivityListPagination();
         if (window.afAllActivities) renderActivityList(window.afAllActivities);
       });
     }
@@ -1003,6 +1052,7 @@
           activeQuickFilters.add(filter);
           btn.classList.add('af-quick-filter-active');
         }
+        resetActivityListPagination();
         if (window.afAllActivities) renderActivityList(window.afAllActivities);
       });
     });
@@ -1024,6 +1074,14 @@
     document.getElementById('year').textContent = new Date().getFullYear();
     window.addEventListener('hashchange', onHashChange);
     setupSearchAndFilters();
+
+    var afResizeListTimer = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(afResizeListTimer);
+      afResizeListTimer = setTimeout(function () {
+        if (window.afAllActivities) renderActivityList(window.afAllActivities);
+      }, 200);
+    });
 
     // Consent modal (TOS + anonymized analytics)
     (function initConsent() {
