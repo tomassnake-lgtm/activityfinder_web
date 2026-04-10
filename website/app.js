@@ -12,11 +12,14 @@
   var weeklyTimerId = null;
   var weeklyIndex = 0;
   var WEEKLY_ROTATE_MS = 6000;
-  var weeklySwipeBound = false;
-  var weeklyPointerId = null;
-  var weeklyStartX = 0;
-  var weeklyActive = false;
-  var weeklyLastDirection = 'next';
+  var WEEKLY_TRACK_GAP = 10;
+  var weeklyActivitiesCached = [];
+  var weeklyResizeTimer = null;
+  var weeklyDragging = false;
+  var weeklyDragStartX = 0;
+  var weeklyDragCurrentX = 0;
+  var weeklyActivePointerId = null;
+  var weeklyGlobalResizeBound = false;
 
   var THEMES = ['snø', 'vann', 'skog', 'ball', 'sosial', 'familie', 'foreldrepermisjon'];
   var currentFilter = null;
@@ -400,107 +403,169 @@
     }
   }
 
-  function renderWeeklySlide(container, activities, idx, direction) {
-    var a = activities[idx];
-    container.innerHTML = '';
-    var card = document.createElement('article');
-    var dir = direction === 'prev' ? 'prev' : 'next';
-    weeklyLastDirection = dir;
-    card.className =
-      'af-weekly-card af-weekly-card-single ' +
-      (dir === 'prev' ? 'af-weekly-from-left' : 'af-weekly-from-right');
+  function setWeeklySlideActiveClasses() {
+    var track = document.getElementById('af-weekly-track');
+    if (!track) return;
+    var slides = track.querySelectorAll('.af-weekly-slide');
+    slides.forEach(function (el, i) {
+      el.classList.toggle('is-active', i === weeklyIndex);
+    });
+  }
+
+  function updateWeeklyTrackTransform(animate, dragExtraPx) {
+    var track = document.getElementById('af-weekly-track');
+    if (!track || !weeklyActivitiesCached.length) return;
+    var first = track.children[0];
+    if (!first) return;
+    var slideW = first.offsetWidth;
+    var gap = WEEKLY_TRACK_GAP;
+    var extra = typeof dragExtraPx === 'number' ? dragExtraPx : 0;
+    var x = -(weeklyIndex * (slideW + gap)) + extra;
+    if (animate === false || Math.abs(extra) > 0.5) {
+      track.style.transition = 'none';
+    } else {
+      track.style.transition = 'transform 0.42s cubic-bezier(0.25, 0.88, 0.35, 1)';
+    }
+    track.style.transform = 'translate3d(' + x + 'px, 0, 0)';
+  }
+
+  function weeklyGoNext() {
+    if (weeklyActivitiesCached.length <= 1) return;
+    weeklyIndex = (weeklyIndex + 1) % weeklyActivitiesCached.length;
+    updateWeeklyTrackTransform(true, 0);
+    setWeeklySlideActiveClasses();
+  }
+
+  function weeklyGoPrev() {
+    if (weeklyActivitiesCached.length <= 1) return;
+    weeklyIndex = (weeklyIndex - 1 + weeklyActivitiesCached.length) % weeklyActivitiesCached.length;
+    updateWeeklyTrackTransform(true, 0);
+    setWeeklySlideActiveClasses();
+  }
+
+  function buildWeeklySlideElement(a) {
+    var article = document.createElement('article');
+    article.className = 'af-weekly-slide af-weekly-card';
     var img = (a.custom_photo_url && '<img src="' + escapeAttr(a.custom_photo_url) + '" alt="" class="af-weekly-img" />') || '';
     var desc = (a.short_description && a.short_description.trim()) ? a.short_description.trim() : (a.description || '');
     var short = (desc || '').slice(0, 120);
-    card.innerHTML =
+    article.innerHTML =
       img +
       '<h3>' + escapeHtml(a.name || '') + '</h3>' +
       '<p>' + escapeHtml(short) + ((desc || '').length > 120 ? '…' : '') + '</p>';
-    card.addEventListener('click', function (e) {
+    article.addEventListener('click', function () {
       showActivityModal(a);
     });
-    container.appendChild(card);
-    // Trigger animation
-    requestAnimationFrame(function () {
-      card.classList.add('af-weekly-in');
-    });
+    return article;
   }
 
-  function bindWeeklySwipe(container, activities) {
-    if (weeklySwipeBound) return;
-    weeklySwipeBound = true;
-
-    function next() {
-      if (!activities.length) return;
+  function bindWeeklyViewportInteractions(viewport) {
+    function onPointerDown(e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      if (weeklyActivitiesCached.length <= 1) return;
+      weeklyDragging = true;
+      weeklyDragStartX = e.clientX;
+      weeklyDragCurrentX = 0;
+      weeklyActivePointerId = e.pointerId;
+      try {
+        viewport.setPointerCapture(e.pointerId);
+      } catch (err) {}
       stopWeeklyRotation();
-      weeklyIndex = (weeklyIndex + 1) % activities.length;
-      renderWeeklySlide(container, activities, weeklyIndex, 'next');
-      startWeeklyRotation(container, activities);
+      updateWeeklyTrackTransform(false, 0);
     }
 
-    function prev() {
-      if (!activities.length) return;
-      stopWeeklyRotation();
-      weeklyIndex = (weeklyIndex - 1 + activities.length) % activities.length;
-      renderWeeklySlide(container, activities, weeklyIndex, 'prev');
-      startWeeklyRotation(container, activities);
+    function onPointerMove(e) {
+      if (!weeklyDragging || weeklyActivePointerId !== e.pointerId) return;
+      weeklyDragCurrentX = e.clientX - weeklyDragStartX;
+      updateWeeklyTrackTransform(false, weeklyDragCurrentX);
     }
 
-    container.addEventListener('pointerdown', function (e) {
-      if (!activities.length) return;
-      weeklyActive = true;
-      weeklyPointerId = e.pointerId;
-      weeklyStartX = e.clientX;
-      try { container.setPointerCapture(weeklyPointerId); } catch (err) {}
-      stopWeeklyRotation();
-    });
-
-    container.addEventListener('pointerup', function (e) {
-      if (!weeklyActive) return;
-      if (weeklyPointerId !== null && e.pointerId !== weeklyPointerId) return;
-      weeklyActive = false;
-      var dx = e.clientX - weeklyStartX;
-      weeklyPointerId = null;
-      if (Math.abs(dx) < 40) {
-        startWeeklyRotation(container, activities);
-        return;
+    function endDrag(e) {
+      if (!weeklyDragging) return;
+      if (weeklyActivePointerId !== null && e.pointerId !== weeklyActivePointerId) return;
+      weeklyDragging = false;
+      var dx = weeklyDragCurrentX;
+      weeklyDragCurrentX = 0;
+      weeklyActivePointerId = null;
+      var threshold = 56;
+      if (Math.abs(dx) > threshold) {
+        if (dx < 0) weeklyGoNext();
+        else weeklyGoPrev();
+      } else {
+        updateWeeklyTrackTransform(true, 0);
       }
-      if (dx < 0) next();
-      else prev();
-    });
+      setWeeklySlideActiveClasses();
+      startWeeklyRotation();
+      try {
+        viewport.releasePointerCapture(e.pointerId);
+      } catch (err2) {}
+    }
 
-    container.addEventListener('pointercancel', function () {
-      weeklyActive = false;
-      weeklyPointerId = null;
-      startWeeklyRotation(container, activities);
-    });
+    viewport.addEventListener('pointerdown', onPointerDown);
+    viewport.addEventListener('pointermove', onPointerMove);
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
   }
 
-  function startWeeklyRotation(container, activities) {
+  function startWeeklyRotation() {
     stopWeeklyRotation();
-    if (activities.length <= 1) return;
+    if (weeklyActivitiesCached.length <= 1) return;
     weeklyTimerId = setInterval(function () {
-      weeklyIndex = (weeklyIndex + 1) % activities.length;
-      renderWeeklySlide(container, activities, weeklyIndex, 'next');
+      weeklyGoNext();
     }, WEEKLY_ROTATE_MS);
+  }
+
+  function scheduleWeeklyLayoutRefresh() {
+    clearTimeout(weeklyResizeTimer);
+    weeklyResizeTimer = setTimeout(function () {
+      updateWeeklyTrackTransform(false, 0);
+      setWeeklySlideActiveClasses();
+    }, 120);
   }
 
   function renderWeeklyCarousel(activities) {
     var container = document.getElementById('af-weekly-carousel');
     if (!container) return;
     stopWeeklyRotation();
+    weeklyActivitiesCached = activities || [];
     container.innerHTML = '';
 
-    if (!activities.length) {
+    if (!weeklyActivitiesCached.length) {
       container.innerHTML = '<p class="af-empty">Ingen ukens aktiviteter lagt inn.</p>';
       return;
     }
 
     weeklyIndex = 0;
-    renderWeeklySlide(container, activities, weeklyIndex, 'next');
+    var viewport = document.createElement('div');
+    viewport.className = 'af-weekly-viewport';
+    viewport.id = 'af-weekly-viewport';
+    if (weeklyActivitiesCached.length === 1) {
+      viewport.classList.add('af-weekly-viewport--single');
+    }
+    var track = document.createElement('div');
+    track.className = 'af-weekly-track';
+    track.id = 'af-weekly-track';
 
-    bindWeeklySwipe(container, activities);
-    startWeeklyRotation(container, activities);
+    weeklyActivitiesCached.forEach(function (a) {
+      track.appendChild(buildWeeklySlideElement(a));
+    });
+    viewport.appendChild(track);
+    container.appendChild(viewport);
+
+    setWeeklySlideActiveClasses();
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        updateWeeklyTrackTransform(false, 0);
+        setWeeklySlideActiveClasses();
+      });
+    });
+
+    bindWeeklyViewportInteractions(viewport);
+    if (!weeklyGlobalResizeBound) {
+      weeklyGlobalResizeBound = true;
+      window.addEventListener('resize', scheduleWeeklyLayoutRefresh);
+    }
+    startWeeklyRotation();
   }
 
   function renderActivityList(activities) {

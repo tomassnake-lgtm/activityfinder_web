@@ -71,10 +71,11 @@ img {
   margin: 0 auto;
   padding: 14px 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px 12px;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
   min-width: 0;
   box-sizing: border-box;
 }
@@ -89,6 +90,7 @@ img {
   border: 1px solid rgba(52, 211, 153, 0.4);
   background: radial-gradient(circle at top left, rgba(52, 211, 153, 0.2), transparent 55%);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  display: inline-block;
 }
 
 .af-nav {
@@ -96,7 +98,7 @@ img {
   flex-wrap: wrap;
   gap: 8px 10px;
   font-size: 0.92rem;
-  justify-content: flex-end;
+  justify-content: center;
   max-width: 100%;
   min-width: 0;
 }
@@ -225,9 +227,101 @@ html:not([data-theme="light"]) .af-section-header h2 {
 .af-weekly-carousel {
   margin-top: 16px;
   display: block;
-  overflow: hidden;
   padding-bottom: 4px;
-  touch-action: pan-y;
+}
+
+/* Horisontal bane med «peek» av forrige/neste (som i story-karuseller) */
+.af-weekly-viewport {
+  --af-weekly-gap: 10px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Lett vignett i kantene – hint om mer innhold å sveipe til */
+.af-weekly-viewport:not(.af-weekly-viewport--single)::before,
+.af-weekly-viewport:not(.af-weekly-viewport--single)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(18px, 5vw, 28px);
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.af-weekly-viewport:not(.af-weekly-viewport--single)::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(5, 26, 8, 0.55) 0%,
+    rgba(5, 26, 8, 0.08) 65%,
+    transparent 100%
+  );
+}
+
+.af-weekly-viewport:not(.af-weekly-viewport--single)::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(5, 26, 8, 0.55) 0%,
+    rgba(5, 26, 8, 0.08) 65%,
+    transparent 100%
+  );
+}
+
+html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::before {
+  background: linear-gradient(
+    to right,
+    rgba(236, 253, 245, 0.92) 0%,
+    rgba(236, 253, 245, 0.15) 70%,
+    transparent 100%
+  );
+}
+
+html[data-theme="light"] .af-weekly-viewport:not(.af-weekly-viewport--single)::after {
+  background: linear-gradient(
+    to left,
+    rgba(236, 253, 245, 0.92) 0%,
+    rgba(236, 253, 245, 0.15) 70%,
+    transparent 100%
+  );
+}
+
+.af-weekly-track {
+  display: flex;
+  flex-direction: row;
+  gap: var(--af-weekly-gap);
+  will-change: transform;
+  transition: transform 0.42s cubic-bezier(0.25, 0.88, 0.35, 1);
+}
+
+.af-weekly-slide {
+  flex: 0 0 calc(100% - 52px);
+  min-width: 0;
+  cursor: pointer;
+  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+  opacity: 0.52;
+  filter: saturate(0.75) brightness(0.92);
+  transform: scale(0.98);
+}
+
+.af-weekly-slide.is-active {
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+}
+
+.af-weekly-viewport--single .af-weekly-slide {
+  flex: 0 0 100%;
+  opacity: 1;
+  filter: none;
+  transform: none;
 }
 
 .af-weekly-card {
@@ -237,29 +331,7 @@ html:not([data-theme="light"]) .af-section-header h2 {
   border: 2px solid rgba(52, 211, 153, 0.25);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.08);
   min-height: 110px;
-}
-
-.af-weekly-card-single {
-  width: 100%;
-  cursor: pointer;
-  opacity: 0;
-  --af-weekly-x: 24px;
-  transform: translateX(var(--af-weekly-x));
-  transition: opacity 420ms cubic-bezier(0.2, 0.9, 0.2, 1), transform 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
-  will-change: transform, opacity;
-}
-
-.af-weekly-card-single.af-weekly-from-left {
-  --af-weekly-x: -24px;
-}
-
-.af-weekly-card-single.af-weekly-from-right {
-  --af-weekly-x: 24px;
-}
-
-.af-weekly-card-single.af-weekly-in {
-  opacity: 1;
-  transform: translateX(0);
+  height: 100%;
 }
 
 .af-weekly-card h3 {
@@ -702,16 +774,14 @@ body.af-map-expanded #af-map.af-map-view {
 
 @media (max-width: 768px) {
   .af-header-inner {
-    gap: 10px;
+    gap: 12px;
     padding: 12px 12px;
-    flex-direction: column;
-    align-items: stretch;
   }
 
   .af-nav {
     font-size: 0.78rem;
     gap: 6px 8px;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .af-nav a {
