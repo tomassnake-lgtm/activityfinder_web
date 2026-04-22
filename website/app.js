@@ -451,12 +451,16 @@
     var article = document.createElement('article');
     article.className = 'af-weekly-slide af-weekly-card';
     var img = (a.custom_photo_url && '<img src="' + escapeAttr(a.custom_photo_url) + '" alt="" class="af-weekly-img" draggable="false" />') || '';
+    var overlay = a.custom_photo_url ? '<div class="af-weekly-card-overlay" aria-hidden="true"></div>' : '';
     var desc = (a.short_description && a.short_description.trim()) ? a.short_description.trim() : (a.description || '');
     var short = (desc || '').slice(0, 120);
     article.innerHTML =
       img +
-      '<h3>' + escapeHtml(a.name || '') + '</h3>' +
-      '<p>' + escapeHtml(short) + ((desc || '').length > 120 ? '…' : '') + '</p>';
+      overlay +
+      '<div class="af-weekly-card-content">' +
+        '<h3>' + escapeHtml(a.name || '') + '</h3>' +
+        '<p>' + escapeHtml(short) + ((desc || '').length > 120 ? '…' : '') + '</p>' +
+      '</div>';
     article.addEventListener('click', function (ev) {
       if (weeklySuppressClick) {
         ev.preventDefault();
