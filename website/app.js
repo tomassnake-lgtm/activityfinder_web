@@ -768,7 +768,9 @@
       card.className = 'af-activity-card';
       var timePlace = formatTimePlace(a);
       var price = formatPrice(a);
-      var bgStyle = (a.custom_photo_url ? 'background-image:url(' + escapeAttr(a.custom_photo_url) + ');' : '');
+      var bgStyle = (a.custom_photo_url
+        ? 'background-image:url(' + escapeAttr(a.custom_photo_url) + ');background-size:cover;background-position:center;background-repeat:no-repeat;'
+        : '');
       card.setAttribute('style', bgStyle);
       card.innerHTML =
         '<div class="af-activity-card-overlay"></div>' +
